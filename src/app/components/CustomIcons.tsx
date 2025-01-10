@@ -1,6 +1,6 @@
 import * as React from 'react';
 import SvgIcon from '@mui/material/SvgIcon';
-import nerdslogo from "../../../public/logo/nerdslogo.png"
+import nerdslogo from "../../../public/logo/nerds6.png"
 import Image from 'next/image';
 
 export function LogoIcon() {
