@@ -1,5 +1,5 @@
-
-import SignIn from "../app/components/Sign-In"
+import Image from "next/image";
+import SignUp from "./components/Sign-Up"
 
 export default function Home() {
   return (
