@@ -35,15 +35,13 @@ const Card = styled(MuiCard)(({ theme }) => ({
     boxShadow:
       'hsla(220, 30%, 5%, 0.5) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.08) 0px 15px 35px -5px',
   }),
-  overflowY: 'auto', // Allow vertical scrolling if content overflows
-  maxHeight: 'calc(100vh - 50px)', // Adjust height for Card to fit within the screen
 }));
 
 const SignUpContainer = styled(Stack)(({ theme }) => ({
-  height: '100vh', // Full viewport height
-  overflowY: 'auto', // Enable vertical scrolling for the container
-  minHeight: '100%', // Ensure it's at least 100% of the viewport
+  height: 'calc((1 - var(--template-frame-height, 0)) * 100dvh)', // Keeps the height based on viewport
+  minHeight: '100%',
   padding: theme.spacing(2),
+  overflow: 'auto', // Add this line to make the content scrollable
   [theme.breakpoints.up('sm')]: {
     padding: theme.spacing(4),
   },
@@ -62,7 +60,6 @@ const SignUpContainer = styled(Stack)(({ theme }) => ({
     }),
   },
 }));
-
 
 
 export default function SignUp(props: { disableCustomTheme?: boolean }) {
