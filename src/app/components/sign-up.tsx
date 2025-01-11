@@ -113,18 +113,63 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
     return isValid;
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    if (usernameError || emailError || passwordError) {
-      event.preventDefault();
-      return;
+
+//typescript iterfaces
+  interface FormData {
+    username: string;
+    email: string;
+    password: string;
+  }
+
+  interface ApiResponse {
+    ok: boolean;
+    status: number;
+    text: () => Promise<string>;
+    json: () => Promise<any>;
+  }
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
+    event.preventDefault();
+    setUsernameErrorMessage('');
+
+    // Collect the form data
+    const formData = new FormData(event.target as HTMLFormElement);
+    const data: FormData = {
+      username: formData.get('username') as string,
+      email: formData.get('email') as string,
+      password: formData.get('password') as string,
+    };
+
+    try {
+      // Make the API call using Fetch
+      const response: ApiResponse = await fetch('http://localhost:5128/Users/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      console.log('response:', response);
+      if (response.ok) {
+        const responseData = await response.json();
+        console.log('User created successfully:', responseData);
+      }
+      else if (response.status === 409) {
+        const errorData = await response.text(); // Fetch the response text
+        if (errorData === 'Username already exists') {
+          setUsernameErrorMessage('This username is already taken.');
+        }
+      }
+       else {
+        // Handle errors
+        const errorData = await response.json();
+        console.error('Error response:', errorData);
+      }
+    } catch (error: any) {
+      console.error('Error:', error.message);
     }
-    const data = new FormData(event.currentTarget);
-    console.log({
-      username: data.get('username'),
-      email: data.get('email'),
-      password: data.get('password'),
-    });
   };
+  
 
   return (
     <AppTheme {...props}>
