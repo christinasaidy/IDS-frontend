@@ -18,6 +18,7 @@ import ForgotPassword from './ForgotPassword';
 import { GoogleIcon, FacebookIcon, LogoIcon } from './CustomIcons';
 import AppTheme from './shared-theme/AppTheme';
 import ColorModeSelect from './shared-theme/ColorModeSelect';
+import MuiLink from '@mui/material/Link';  
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -218,7 +219,7 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
             <Typography sx={{ textAlign: 'center' }}>
               Don&apos;t have an account?{' '}
               <Link
-                href="/material-ui/getting-started/templates/sign-in/"
+                href="/sign-up"
                 variant="body2"
                 sx={{ alignSelf: 'center' }}
               >
