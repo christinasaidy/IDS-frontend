@@ -17,6 +17,9 @@ import { styled } from '@mui/material/styles';
 import AppTheme from './shared-theme/AppTheme';
 import { GoogleIcon, FacebookIcon, LogoIcon } from './CustomIcons';
 import ColorModeSelect from './shared-theme/ColorModeSelect';
+//import Link from 'next/link';
+import MuiLink from '@mui/material/Link';  
+import NextLink from 'next/link';
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -223,7 +226,7 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
             <Typography sx={{ textAlign: 'center' }}>
               Already have an account?{' '}
               <Link
-                href="/signin"
+                href="/components/pages/signin/"
                 variant="body2"
                 sx={{ alignSelf: 'center' }}
                 underline="hover"
@@ -231,6 +234,7 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
               >
                 Sign in
               </Link>
+
             </Typography>
           </Box>
         </Card>

@@ -19,12 +19,16 @@ import { GoogleIcon, FacebookIcon, LogoIcon } from './CustomIcons';
 import AppTheme from './shared-theme/AppTheme';
 import ColorModeSelect from './shared-theme/ColorModeSelect';
 import MuiLink from '@mui/material/Link';  
+//import Link from 'next/link';
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   alignSelf: 'center',
   width: '100%',
+  height: '100vh', // Full viewport height
+  overflowY: 'auto', // Enable vertical scrolling for the container
+  minHeight: '100%', // Ensure it's at least 100% of the viewport
   padding: theme.spacing(4),
   gap: theme.spacing(2),
   margin: 'auto',
@@ -126,7 +130,7 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
           <Typography
             component="h1"
             variant="h4"
-            sx={{ width: '100%', fontSize: 'clamp(2rem, 10vw, 2.15rem)' }}
+            sx={{ width: '100%', fontSize: 'clamp(2rem, 10vw, 2.15rem)', marginTop: '-50px' }}
           >
             Sign in
           </Typography>
