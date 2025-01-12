@@ -15,6 +15,7 @@ import OutlinedInput from '@mui/material/OutlinedInput';
 import { styled } from '@mui/material/styles';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import RssFeedRoundedIcon from '@mui/icons-material/RssFeedRounded';
+import { useEffect, useState } from 'react';
 
 const cardData = [
   {
@@ -177,10 +178,17 @@ export default function MainContent() {
     setFocusedCardIndex(null);
   };
 
+  const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
+  useEffect(() => {
+    fetch('http://localhost:5128/Categories')
+      .then((response) => response.json())
+      .then((data) => setCategories(data))
+      .catch((error) => console.error('Error fetching categories:', error));
+  }, []);
+
   const handleClick = () => {
     console.info('You clicked the filter chip.');
   };
-
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       <div>
@@ -215,51 +223,27 @@ export default function MainContent() {
         }}
       >
         <Box
+      sx={{
+        display: 'inline-flex',
+        flexDirection: 'row',
+        gap: 3,
+        overflow: 'auto',
+      }}
+    >
+    <Chip onClick={handleClick} size="medium" label="All categories" />
+      {categories.map((category) => (
+        <Chip
+          key={category.id} 
+          onClick={() => handleClick()}
+          size="medium"
+          label={category.name}
           sx={{
-            display: 'inline-flex',
-            flexDirection: 'row',
-            gap: 3,
-            overflow: 'auto',
+            backgroundColor: 'transparent',
+            border: 'none',
           }}
-        >
-          <Chip onClick={handleClick} size="medium" label="All categories" />
-          <Chip
-            onClick={handleClick}
-            size="medium"
-            label="Company"
-            sx={{
-              backgroundColor: 'transparent',
-              border: 'none',
-            }}
-          />
-          <Chip
-            onClick={handleClick}
-            size="medium"
-            label="Product"
-            sx={{
-              backgroundColor: 'transparent',
-              border: 'none',
-            }}
-          />
-          <Chip
-            onClick={handleClick}
-            size="medium"
-            label="Design"
-            sx={{
-              backgroundColor: 'transparent',
-              border: 'none',
-            }}
-          />
-          <Chip
-            onClick={handleClick}
-            size="medium"
-            label="Engineering"
-            sx={{
-              backgroundColor: 'transparent',
-              border: 'none',
-            }}
-          />
-        </Box>
+        />
+      ))}
+    </Box>
         <Box
           sx={{
             display: { xs: 'none', sm: 'flex' },
