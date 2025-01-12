@@ -3,15 +3,23 @@ import SvgIcon from '@mui/material/SvgIcon';
 import nerdslogo from "../../../public/logo/nerdslogo.png"
 import Image from 'next/image';
 
-export function LogoIcon() {
+interface LogoIconProps {
+  style?: React.CSSProperties; // Optional inline styles
+}
+export function LogoIcon({ style }: LogoIconProps) {
   return (
     <div
     style={{
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
-      height: '100vh', // Full viewport height
-      width: '100%',   // Full width
+    // height: '60px', // Full viewport height
+    height: '30px',
+      width: '300px',   // Full width
+      marginTop: '40px',
+    //  marginBottom: '0',
+      ...style,
+  
     
     }}
   >

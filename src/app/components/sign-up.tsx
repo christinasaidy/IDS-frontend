@@ -175,7 +175,13 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
       <ColorModeSelect sx={{ position: 'fixed', top: '1rem', right: '1rem' }} />
       <SignUpContainer direction="column" justifyContent="space-between">
         <Card variant="outlined">
-          <LogoIcon/>
+        <LogoIcon style={{    display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      height: '100vh', // Full viewport height
+      width: '100%', }} />
+
+
           <Typography
             component="h1"
             variant="h4"

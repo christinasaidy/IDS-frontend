@@ -125,7 +125,11 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
       <Stack direction="column" justifyContent="space-between" sx={{ height: "100vh", padding: 2 }}>
         <ColorModeSelect sx={{ position: "fixed", top: "1rem", right: "1rem" }} />
         <Card variant="outlined">
-          <LogoIcon />
+               <LogoIcon style={{    display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: '100vh', // Full viewport height
+                width: '100%', }} />
           <Typography component="h1" variant="h4" sx={{ fontSize: "clamp(2rem, 10vw, 2.15rem)" }}>
             Sign in
           </Typography>
