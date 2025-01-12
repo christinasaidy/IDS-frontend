@@ -12,7 +12,7 @@ import Drawer from '@mui/material/Drawer';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import { LogoIcon } from '../../CustomIcons';
-import ColorModeIconDropdown from '../../shared-theme/ColorModeIconDropdown';
+import Link from 'next/link';
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   display: 'flex',
@@ -22,11 +22,9 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   borderRadius: `calc(${theme.shape.borderRadius}px + 8px)`,
   backdropFilter: 'blur(24px)',
   border: '1px solid',
-  borderColor: (theme.vars || theme).palette.divider,
-  backgroundColor: theme.vars
-    ? `rgba(${theme.vars.palette.background.defaultChannel} / 0.4)`
-    : alpha(theme.palette.background.default, 0.4),
-  boxShadow: (theme.vars || theme).shadows[1],
+  borderColor: theme.palette.divider, // Adjust border color for light mode
+  backgroundColor: alpha(theme.palette.background.default, 0.4), // Always light background
+  boxShadow: theme.shadows[1], // Retain the shadow
   padding: '8px 12px',
 }));
 
@@ -40,7 +38,6 @@ export default function AppAppBar() {
   return (
     <AppBar
       position="fixed"
-      enableColorOnDark
       sx={{
         boxShadow: 0,
         bgcolor: 'transparent',
@@ -62,11 +59,13 @@ export default function AppAppBar() {
               <LogoIcon style={{ width: '200px' }} />
             </Box>
             <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
+              <Link href="/pages/userprofile" passHref>
+                <Button variant="text" color="info" size="small">
+                  My Profile
+                </Button>
+              </Link>
               <Button variant="text" color="info" size="small">
-                Features
-              </Button>
-              <Button variant="text" color="info" size="small">
-                Testimonials
+                Settings
               </Button>
               <Button variant="text" color="info" size="small">
                 Highlights
@@ -80,7 +79,7 @@ export default function AppAppBar() {
             </Box>
           </Box>
           <Box sx={{ display: { xs: 'flex', md: 'none' }, gap: 1 }}>
-            <ColorModeIconDropdown size="medium" />
+            {/* Add color mode toggle if needed, but dark mode is now removed */}
             <IconButton aria-label="Menu button" onClick={toggleDrawer(true)}>
               <MenuIcon />
             </IconButton>
@@ -100,8 +99,8 @@ export default function AppAppBar() {
                     <CloseRoundedIcon />
                   </IconButton>
                 </Box>
-                <MenuItem>Features</MenuItem>
-                <MenuItem>Testimonials</MenuItem>
+                <MenuItem>My Profile</MenuItem>
+                <MenuItem>Settings</MenuItem>
                 <MenuItem>Highlights</MenuItem>
                 <MenuItem>FAQ</MenuItem>
                 <MenuItem>Blog</MenuItem>

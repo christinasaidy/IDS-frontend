@@ -243,7 +243,7 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
               control={<Checkbox value="allowExtraEmails" color="primary" />}
               label="I want to receive updates via email."
             />
-            <Button
+            <Button 
               type="submit"
               fullWidth
               variant="contained"
