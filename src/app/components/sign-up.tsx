@@ -202,7 +202,7 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
                 required
                 fullWidth
                 id="username"
-                placeholder="JonSnow123"
+                placeholder="Your username" 
                 error={usernameError}
                 helperText={usernameErrorMessage}
                 color={usernameError ? 'error' : 'primary'}
