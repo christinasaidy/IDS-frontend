@@ -19,6 +19,7 @@ export function LogoIcon({ style }: LogoIconProps) {
       marginTop: '40px',
     //  marginBottom: '0',
       ...style,
+      
   
     
     }}
