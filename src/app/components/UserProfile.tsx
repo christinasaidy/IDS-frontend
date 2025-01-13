@@ -89,6 +89,8 @@ const UserProfile = () => {
   const [posts, setPosts] = useState<Post[]>([]); // State to hold posts
   const [error, setError] = useState<string | null>(null);
 
+  const userId = 1; // For example, use the logged-in user ID, replace with dynamic value as needed.
+
   useEffect(() => {
     // Fetch the username from the API
     fetch("http://localhost:5128/Users/username", {
@@ -134,6 +136,22 @@ const UserProfile = () => {
           setError("Failed to fetch posts.");
           console.error(err);
         });
+
+      // Fetch bio for the logged-in user
+      fetch(`http://localhost:5128/Users/bio`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          setBio(data.bio || "Unedited Bio");
+        })
+        .catch((err) => {
+          setError("Failed to fetch bio.");
+          console.error(err);
+        });
     }
   }, [username]);
 
@@ -146,10 +164,31 @@ const UserProfile = () => {
   };
 
   const handleBioSave = () => {
-    setIsEditingBio(false);
-    // You can add a PUT request to save the bio to the server if needed.
-    console.log("Bio saved:", bio); // For now, just log the bio
+    fetch(`http://localhost:5128/Users/addbio`, {
+      method: "POST", // Use POST method to update bio
+      headers: {
+        "Content-Type": "application/json", // Ensure content type is set to JSON
+        Authorization: `Bearer ${localStorage.getItem("token")}`, // Include token for authentication
+      },
+      body: JSON.stringify(bio), // Send bio directly as a string (not an object)
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to update bio.");
+        }
+        return response.text(); // Expect plain text response, not JSON
+      })
+      .then((message) => {
+        console.log(message); // Log the success message from the backend
+        setIsEditingBio(false); // Exit edit mode after saving
+      })
+      .catch((err) => {
+        setError("Failed to save bio.");
+        console.error(err);
+      });
   };
+  
+  
 
   if (error) {
     return <Typography variant="h6" color="error">{error}</Typography>;
@@ -171,7 +210,7 @@ const UserProfile = () => {
         <Typography variant="h4" gutterBottom>
           {username}
         </Typography>
-        
+
         {/* Editable Bio Section */}
         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1 }}>
           {isEditingBio ? (
