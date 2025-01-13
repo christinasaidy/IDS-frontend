@@ -22,9 +22,9 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   borderRadius: `calc(${theme.shape.borderRadius}px + 8px)`,
   backdropFilter: 'blur(24px)',
   border: '1px solid',
-  borderColor: theme.palette.divider, // Adjust border color for light mode
-  backgroundColor: alpha(theme.palette.background.default, 0.4), // Always light background
-  boxShadow: theme.shadows[1], // Retain the shadow
+  borderColor: (theme.vars || theme).palette.divider,
+  backgroundColor: alpha(theme.palette.background.default, 0.4),
+  boxShadow: (theme.vars || theme).shadows[1],
   padding: '8px 12px',
 }));
 
@@ -48,7 +48,6 @@ export default function AppAppBar() {
       <Container maxWidth="lg">
         <StyledToolbar variant="dense" disableGutters>
           <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', px: 0 }}>
-            {/* Center logo on small screens, left-aligned on large screens */}
             <Box
               sx={{
                 display: 'flex',
@@ -79,7 +78,6 @@ export default function AppAppBar() {
             </Box>
           </Box>
           <Box sx={{ display: { xs: 'flex', md: 'none' }, gap: 1 }}>
-            {/* Add color mode toggle if needed, but dark mode is now removed */}
             <IconButton aria-label="Menu button" onClick={toggleDrawer(true)}>
               <MenuIcon />
             </IconButton>

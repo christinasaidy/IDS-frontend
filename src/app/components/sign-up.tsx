@@ -16,8 +16,12 @@ import MuiCard from "@mui/material/Card";
 import { styled } from "@mui/material/styles";
 import AppTheme from "./shared-theme/AppTheme";
 import { GoogleIcon, FacebookIcon, LogoIcon } from "./CustomIcons";
-import ColorModeSelect from "./shared-theme/ColorModeSelect";
 
+const lightTheme = {
+  palette: {
+    mode: "light",
+  },
+};
 const Card = styled(MuiCard)(({ theme }) => ({
   display: "flex",
   flexDirection: "column",
@@ -31,10 +35,6 @@ const Card = styled(MuiCard)(({ theme }) => ({
   [theme.breakpoints.up("sm")]: {
     width: "450px",
   },
-  ...theme.applyStyles("dark", {
-    boxShadow:
-      "hsla(220, 30%, 5%, 0.5) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.08) 0px 15px 35px -5px",
-  }),
   overflowY: "auto",
   maxHeight: "calc(100vh - 50px)",
 }));
@@ -56,10 +56,6 @@ const SignUpContainer = styled(Stack)(({ theme }) => ({
     backgroundImage:
       "radial-gradient(ellipse at 50% 50%, hsl(210, 100%, 97%), hsl(0, 0%, 100%))",
     backgroundRepeat: "no-repeat",
-    ...theme.applyStyles("dark", {
-      backgroundImage:
-        "radial-gradient(at 50% 50%, hsla(210, 100%, 16%, 0.5), hsl(220, 30%, 5%))",
-    }),
   },
 }));
 
@@ -155,9 +151,8 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
   };
 
   return (
-    <AppTheme {...props}>
-      <CssBaseline enableColorScheme />
-      <ColorModeSelect sx={{ position: "fixed", top: "1rem", right: "1rem" }} />
+    <AppTheme theme={lightTheme} {...props}>
+      <CssBaseline />
       <SignUpContainer direction="column" justifyContent="space-between">
         <Card variant="outlined">
           <LogoIcon
@@ -185,7 +180,7 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
                 required
                 fullWidth
                 id="username"
-                placeholder="JonSnow123"
+                placeholder="Your username" 
                 error={usernameError}
                 helperText={usernameErrorMessage}
               />

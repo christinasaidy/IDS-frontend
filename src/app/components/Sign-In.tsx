@@ -17,27 +17,47 @@ import { styled } from "@mui/material/styles";
 import ForgotPassword from "./ForgotPassword";
 import { GoogleIcon, FacebookIcon, LogoIcon } from "./CustomIcons";
 import AppTheme from "./shared-theme/AppTheme";
-import ColorModeSelect from "./shared-theme/ColorModeSelect";
+
+const lightTheme = {
+  palette: {
+    mode: "light",
+  },
+};
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: "flex",
   flexDirection: "column",
   alignSelf: "center",
   width: "100%",
-  height: "100vh",
-  overflowY: "auto",
   padding: theme.spacing(4),
   gap: theme.spacing(2),
   margin: "auto",
-  [theme.breakpoints.up("sm")]: {
-    maxWidth: "450px",
-  },
   boxShadow:
     "hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px",
-  ...theme.applyStyles("dark", {
-    boxShadow:
-      "hsla(220, 30%, 5%, 0.5) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.08) 0px 15px 35px -5px",
-  }),
+  [theme.breakpoints.up("sm")]: {
+    width: "450px",
+  },
+  overflowY: "auto",
+  maxHeight: "calc(100vh - 50px)",
+}));
+
+const SignInContainer = styled(Stack)(({ theme }) => ({
+  height: "100vh",
+  overflowY: "auto",
+  minHeight: "100%",
+  padding: theme.spacing(2),
+  [theme.breakpoints.up("sm")]: {
+    padding: theme.spacing(4),
+  },
+  "&::before": {
+    content: '""',
+    display: "block",
+    position: "absolute",
+    zIndex: -1,
+    inset: 0,
+    backgroundImage:
+      "radial-gradient(ellipse at 50% 50%, hsl(210, 100%, 97%), hsl(0, 0%, 100%))",
+  },
 }));
 
 export default function SignIn(props: { disableCustomTheme?: boolean }) {
@@ -45,7 +65,6 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
   const [usernameErrorMessage, setUsernameErrorMessage] = React.useState("");
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState("");
-  const [open, setOpen] = React.useState(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -66,13 +85,9 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
       });
 
       if (response.ok) {
-        const result = await response.json(); // Assuming the API returns the JWT
+        const result = await response.json();
         console.log(result);
-
-        // Save the token to localStorage
         localStorage.setItem("token", result.token);
-
-        // Redirect the user to another page
         window.location.href = "/pages/feed";
       } else {
         const error = await response.json();
@@ -90,9 +105,9 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
 
     let isValid = true;
 
-    if (!username.value || username.value.trim().length < 3) {
+    if (!username.value) {
       setUsernameError(true);
-      setUsernameErrorMessage("Username must be at least 3 characters long.");
+      setUsernameErrorMessage("Please enter your username.");
       isValid = false;
     } else {
       setUsernameError(false);
@@ -111,90 +126,67 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
     return isValid;
   };
 
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-  };
-
   return (
-    <AppTheme {...props}>
-      <CssBaseline enableColorScheme />
-      <Stack direction="column" justifyContent="space-between" sx={{ height: "100vh", padding: 2 }}>
-        <ColorModeSelect sx={{ position: "fixed", top: "1rem", right: "1rem" }} />
+    <AppTheme theme={lightTheme} disableCustomTheme={false}>
+      <CssBaseline />
+      <SignInContainer direction="column" justifyContent="space-between">
         <Card variant="outlined">
-               <LogoIcon style={{    display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: '100vh', // Full viewport height
-                width: '100%', }} />
-          <Typography component="h1" variant="h4" sx={{ fontSize: "clamp(2rem, 10vw, 2.15rem)" }}>
+          <LogoIcon style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", width: "100%" }} />
+          <Typography component="h1" variant="h4" sx={{ width: "100%", fontSize: "clamp(2rem, 10vw, 2.15rem)", marginTop: "-50px" }}>
             Sign in
           </Typography>
-          <Box
-            component="form"
-            onSubmit={handleSubmit}
-            noValidate
-            sx={{ display: "flex", flexDirection: "column", gap: 2 }}
-          >
-            <FormControl>
+          <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <FormControl error={usernameError}>
               <FormLabel htmlFor="username">Username</FormLabel>
               <TextField
-                error={usernameError}
-                helperText={usernameErrorMessage}
-                id="username"
-                name="username"
-                type="text"
-                autoComplete="username"
                 required
                 fullWidth
+                id="username"
+                placeholder="Your username"
+                name="username"
+                autoComplete="username"
                 variant="outlined"
+                helperText={usernameErrorMessage}
               />
             </FormControl>
-            <FormControl>
+            <FormControl error={passwordError}>
               <FormLabel htmlFor="password">Password</FormLabel>
               <TextField
-                error={passwordError}
-                helperText={passwordErrorMessage}
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
                 required
                 fullWidth
+                name="password"
+                placeholder="••••••"
+                type="password"
+                id="password"
+                autoComplete="current-password"
                 variant="outlined"
+                helperText={passwordErrorMessage}
               />
             </FormControl>
-            <FormControlLabel control={<Checkbox color="primary" />} label="Remember me" />
-            <ForgotPassword open={open} handleClose={handleClose} />
-            <Link href="/pages/feed">
-             <Button type="submit" fullWidth variant="contained">
+            <FormControlLabel control={<Checkbox value="remember" color="primary" />} label="Remember me" />
+            <Button type="submit" fullWidth variant="contained">
               Sign in
-             </Button>
-             </Link>
-            <Link component="button" type="button" onClick={handleClickOpen} sx={{ alignSelf: "center" }}>
-              Forgot your password?
-            </Link>
+            </Button>
           </Box>
-          <Divider>or</Divider>
+          <Divider>
+            <Typography sx={{ color: "text.secondary" }}>or</Typography>
+          </Divider>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <Button variant="outlined" onClick={() => alert("Sign in with Google")} startIcon={<GoogleIcon />}>
+            <Button fullWidth variant="outlined" onClick={() => alert("Sign in with Google")} startIcon={<GoogleIcon />}>
               Sign in with Google
             </Button>
-            <Button variant="outlined" onClick={() => alert("Sign in with Facebook")} startIcon={<FacebookIcon />}>
+            <Button fullWidth variant="outlined" onClick={() => alert("Sign in with Facebook")} startIcon={<FacebookIcon />}>
               Sign in with Facebook
             </Button>
             <Typography sx={{ textAlign: "center" }}>
-              Don&apos;t have an account?{" "}
-              <Link href="/pages/signup" variant="body2">
+              Don't have an account?{" "}
+              <Link href="/pages/signup" variant="body2" sx={{ alignSelf: "center" }} underline="hover">
                 Sign up
               </Link>
             </Typography>
           </Box>
         </Card>
-      </Stack>
+      </SignInContainer>
     </AppTheme>
   );
 }
