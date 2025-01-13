@@ -16,12 +16,15 @@ interface AppThemeProps {
 
 export default function AppTheme(props: AppThemeProps) {
   const { children, disableCustomTheme, themeComponents } = props;
-  
+
   const theme = React.useMemo(() => {
     return disableCustomTheme
       ? {}
       : createTheme({
-          colorSchemes, // Handle color modes (light and dark)
+          palette: {
+            mode: 'light', // Ensures the light mode is always used
+          },
+          colorSchemes,
           typography,
           shadows,
           shape,
@@ -35,11 +38,11 @@ export default function AppTheme(props: AppThemeProps) {
           },
         });
   }, [disableCustomTheme, themeComponents]);
-  
+
   if (disableCustomTheme) {
     return <React.Fragment>{children}</React.Fragment>;
   }
-  
+
   return (
     <ThemeProvider theme={theme}>
       {children}

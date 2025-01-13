@@ -19,7 +19,7 @@ function Copyright() {
     <Typography variant="body2" sx={{ color: 'text.secondary', mt: 1 }}>
       {'Copyright © '}
       <Link color="text.secondary" href="https://mui.com/">
-        Sitemark
+        Nerds
       </Link>
       &nbsp;
       {new Date().getFullYear()}
@@ -39,6 +39,7 @@ export default function Footer() {
           gap: { xs: 4, sm: 8 },
           py: { xs: 8, sm: 10 },
           textAlign: { sm: 'center', md: 'left' },
+
         }}
       >
         <Box
@@ -58,7 +59,6 @@ export default function Footer() {
             }}
           >
             <Box sx={{ width: { xs: '100%', sm: '60%' } }}>
-              <SitemarkIcon />
               <Typography
                 variant="body2"
                 gutterBottom
@@ -196,7 +196,7 @@ export default function Footer() {
             <IconButton
               color="inherit"
               size="small"
-              href="https://github.com/mui"
+              href="https://github.com"
               aria-label="GitHub"
               sx={{ alignSelf: 'center' }}
             >
@@ -205,7 +205,7 @@ export default function Footer() {
             <IconButton
               color="inherit"
               size="small"
-              href="https://x.com/MaterialUI"
+              href="https://x.com"
               aria-label="X"
               sx={{ alignSelf: 'center' }}
             >
@@ -214,7 +214,7 @@ export default function Footer() {
             <IconButton
               color="inherit"
               size="small"
-              href="https://www.linkedin.com/company/mui/"
+              href="https://www.linkedin.com"
               aria-label="LinkedIn"
               sx={{ alignSelf: 'center' }}
             >
