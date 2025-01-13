@@ -1,55 +1,155 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { styled } from "@mui/system";
-import { Avatar, Card, CardContent, Grid, Typography, Container, Box } from "@mui/material";
-import { FiEdit, FiTrash2 } from "react-icons/fi";
+import { Avatar, Card, CardContent, Grid, Typography, Container, Box, IconButton, Button, CardMedia, TextField } from "@mui/material";
+import { ThumbUp, ThumbDown, Comment, Edit } from "@mui/icons-material";
 
-const StyledCard = styled(Card)(({ theme }) => ({
-  padding: "24px",
-  textAlign: "center",
-  marginBottom: "32px",
-  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)"
-}));
+// Post and Author interfaces (matching the structure from the first code)
+interface Author {
+  id: number;
+  userName: string;
+  avatar: string;
+}
 
-const ProfileAvatar = styled(Avatar)(({ theme }) => ({
-  width: "120px",
-  height: "120px",
-  margin: "0 auto 16px",
-  border: "4px solid #fff",
-  boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)"
-}));
+interface Post {
+  id: number;
+  title: string;
+  description: string;
+  tags: string;
+  upvotes: number;
+  downvotes: number;
+  author: Author;
+  category: { id: number; name: string };
+  img: string;
+}
 
-const PostCard = styled(Card)(({ theme }) => ({
-  height: "100%",
-  display: "flex",
-  flexDirection: "column",
-  transition: "transform 0.2s",
-  "&:hover": {
-    transform: "translateY(-4px)"
-  }
-}));
+const PostCard: React.FC<{ post: Post }> = ({ post }) => {
+  return (
+    <Grid item xs={12} sm={6} md={4}>
+      <Card variant="outlined" sx={{ borderRadius: 2, boxShadow: 3 }}>
+        <CardMedia
+          component="img"
+          alt={post.title}
+          image={post.img || 'https://picsum.photos/800/450?random=1'}
+          sx={{
+            height: 200,
+            objectFit: 'cover',
+            borderTopLeftRadius: 2,
+            borderTopRightRadius: 2,
+          }}
+        />
+        <CardContent>
+          <Typography gutterBottom variant="caption" color="primary" component="div">
+            {post.category.name}
+          </Typography>
+          <Typography gutterBottom variant="h6" component="div">
+            {post.title}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" gutterBottom>
+            {post.description}
+          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <IconButton sx={{ color: 'green' }}>
+                  <ThumbUp />
+                </IconButton>
+                <Typography sx={{ color: 'black', fontWeight: 600 }}>{post.upvotes}</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <IconButton sx={{ color: 'red' }}>
+                  <ThumbDown />
+                </IconButton>
+                <Typography sx={{ color: 'red', fontWeight: 600 }}>{post.downvotes}</Typography>
+              </Box>
+            </Box>
+            <Button startIcon={<Comment />} variant="outlined" color="primary">
+              Comment
+            </Button>
+          </Box>
+        </CardContent>
+        <Box sx={{ display: 'flex', alignItems: 'center', padding: 1 }}>
+          <img
+            src={post.author.avatar || 'https://picsum.photos/800/450?random=1'}
+            alt="Author Avatar"
+            style={{ width: 30, height: 30, borderRadius: '50%' }}
+          />
+          <Typography variant="body2" color="text.secondary" sx={{ marginLeft: 1 }}>
+            {post.author.userName}
+          </Typography>
+        </Box>
+      </Card>
+    </Grid>
+  );
+};
 
 const UserProfile = () => {
-  const [username, setUsername] = useState(null);
-  const [error, setError] = useState(null);
+  const [username, setUsername] = useState<string | null>(null);
+  const [bio, setBio] = useState<string>("Unedited Bio"); // Default bio set to "Unedited Bio"
+  const [isEditingBio, setIsEditingBio] = useState<boolean>(false);
+  const [posts, setPosts] = useState<Post[]>([]); // State to hold posts
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // Fetch the username from the API
-    fetch('http://localhost:5128/Users/username', {
-      method: 'GET',
+    fetch("http://localhost:5128/Users/username", {
+      method: "GET",
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}` // Add token if required for authentication
-      }
+        Authorization: `Bearer ${localStorage.getItem("token")}`, // Add token if required for authentication
+      },
     })
-      .then(response => response.json())
-      .then(data => {
+      .then((response) => response.json())
+      .then((data) => {
         setUsername(data.username);
       })
-      .catch(err => {
+      .catch((err) => {
         setError("Failed to fetch username.");
         console.error(err);
       });
   }, []);
+
+  useEffect(() => {
+    if (username) {
+      // Fetch posts from the API for the signed-in user
+      fetch("http://localhost:5128/Users/posts", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`, // Add token for authentication
+        },
+      })
+        .then((response) => {
+          if (response.status === 404) {
+            setPosts([]); // No posts found, set posts to an empty array
+          } else if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error("Failed to fetch posts.");
+          }
+        })
+        .then((data) => {
+          if (data) {
+            setPosts(data); // Set fetched posts in the state
+          }
+        })
+        .catch((err) => {
+          setError("Failed to fetch posts.");
+          console.error(err);
+        });
+    }
+  }, [username]);
+
+  const handleBioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setBio(e.target.value);
+  };
+
+  const toggleEditMode = () => {
+    setIsEditingBio((prev) => !prev);
+  };
+
+  const handleBioSave = () => {
+    setIsEditingBio(false);
+    // You can add a PUT request to save the bio to the server if needed.
+    console.log("Bio saved:", bio); // For now, just log the bio
+  };
 
   if (error) {
     return <Typography variant="h6" color="error">{error}</Typography>;
@@ -59,116 +159,65 @@ const UserProfile = () => {
     return <Typography variant="h6">Loading...</Typography>;
   }
 
-  const userData = {
-    username: username,
-    bio: "Professional photographer and digital artist. Passionate about capturing moments and creating beautiful visual stories.",
-    profileImage: "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
-    posts: [
-      {
-        id: 1,
-        title: "Summer Adventure",
-        content: "Exploring hidden beaches and capturing the perfect sunset",
-        timestamp: "2 hours ago",
-        image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e"
-      },
-      {
-        id: 2,
-        title: "Urban Photography",
-        content: "Street photography in the heart of the city",
-        timestamp: "1 day ago",
-        image: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000"
-      },
-      {
-        id: 3,
-        title: "Nature's Beauty",
-        content: "Found this amazing spot during my morning hike",
-        timestamp: "3 days ago",
-        image: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e"
-      }
-    ]
-  };
-
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <StyledCard>
-        <ProfileAvatar
-          alt={userData.username}
-          src={userData.profileImage}
-          imgProps={{
-            onError: (e) => {
-              e.target.src = "https://images.unsplash.com/photo-1511367461989-f85a21fda167";
-            }
-          }}
+      {/* Profile Section with Editable Bio */}
+      <Card sx={{ textAlign: "center", padding: "24px", marginBottom: "32px", boxShadow: 3 }}>
+        <Avatar
+          alt={username}
+          src="https://images.unsplash.com/photo-1494790108377-be9c29b29330"
+          sx={{ width: 120, height: 120, margin: "0 auto 16px", border: "4px solid #fff" }}
         />
         <Typography variant="h4" gutterBottom>
-          {userData.username}
+          {username}
         </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-          {userData.bio}
-        </Typography>
-      </StyledCard>
+        
+        {/* Editable Bio Section */}
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1 }}>
+          {isEditingBio ? (
+            <TextField
+              value={bio}
+              onChange={handleBioChange}
+              variant="outlined"
+              fullWidth
+              size="small"
+              multiline
+              rows={2}
+            />
+          ) : (
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+              {bio}
+            </Typography>
+          )}
+          <IconButton onClick={toggleEditMode} color="primary">
+            <Edit />
+          </IconButton>
+        </Box>
 
+        {isEditingBio && (
+          <Button variant="contained" color="primary" onClick={handleBioSave} sx={{ mt: 2 }}>
+            Save Bio
+          </Button>
+        )}
+      </Card>
+
+      {/* Posts Section */}
       <Typography variant="h5" gutterBottom sx={{ mb: 3 }}>
         Recent Posts
       </Typography>
 
-      <Grid container spacing={3}>
-        {userData.posts.map((post) => (
-          <Grid item xs={12} sm={6} md={4} key={post.id}>
-            <PostCard>
-              <Box
-                sx={{
-                  height: 200,
-                  overflow: "hidden",
-                  position: "relative"
-                }}
-              >
-                <img
-                  src={post.image}
-                  alt={post.title}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover"
-                  }}
-                  onError={(e) => {
-                    e.target.src = "https://images.unsplash.com/photo-1531482615713-2afd69097998";
-                  }}
-                />
-              </Box>
-              <CardContent sx={{ flexGrow: 1 }}>
-                <Typography variant="h6" gutterBottom>
-                  {post.title}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" paragraph>
-                  {post.content}
-                </Typography>
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center"
-                  }}
-                >
-                  <Typography variant="caption" color="text.secondary">
-                    {post.timestamp}
-                  </Typography>
-                  <Box>
-                    <FiEdit
-                      style={{ cursor: "pointer", marginRight: "8px" }}
-                      size={18}
-                    />
-                    <FiTrash2
-                      style={{ cursor: "pointer", color: "#d32f2f" }}
-                      size={18}
-                    />
-                  </Box>
-                </Box>
-              </CardContent>
-            </PostCard>
-          </Grid>
-        ))}
-      </Grid>
+      {/* Check if posts are available */}
+      {posts.length === 0 ? (
+        <Typography variant="h6" color="primary">
+          You don't have any posts :(
+        </Typography>
+      ) : (
+        <Grid container spacing={3}>
+          {posts.map((post) => (
+            <PostCard key={post.id} post={post} />
+          ))}
+        </Grid>
+      )}
     </Container>
   );
 };
