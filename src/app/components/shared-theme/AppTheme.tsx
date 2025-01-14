@@ -12,17 +12,25 @@ interface AppThemeProps {
   children: React.ReactNode;
   disableCustomTheme?: boolean;
   themeComponents?: ThemeOptions['components'];
+  mode?: 'light' | 'dark'; // Optional prop to override system preference
 }
 
 export default function AppTheme(props: AppThemeProps) {
-  const { children, disableCustomTheme, themeComponents } = props;
+  const { children, disableCustomTheme, themeComponents, mode } = props;
+
+  const prefersDarkMode = React.useMemo(() => window.matchMedia('(prefers-color-scheme: dark)').matches, []);
 
   const theme = React.useMemo(() => {
+    const currentMode = mode || (disableCustomTheme ? 'light' : prefersDarkMode ? 'dark' : 'light');
     return disableCustomTheme
       ? {}
       : createTheme({
           palette: {
-            mode: 'light', // Ensures the light mode is always used
+            mode: currentMode, // Use the resolved mode (light or dark)
+            background: {
+              default: currentMode === 'light' ? '#ffffff' : '#121212', // Explicitly set light background
+              paper: currentMode === 'light' ? '#ffffff' : '#333333', // Paper background
+            },
           },
           colorSchemes,
           typography,
@@ -37,7 +45,7 @@ export default function AppTheme(props: AppThemeProps) {
             ...themeComponents,
           },
         });
-  }, [disableCustomTheme, themeComponents]);
+  }, [disableCustomTheme, themeComponents, prefersDarkMode, mode]);
 
   if (disableCustomTheme) {
     return <React.Fragment>{children}</React.Fragment>;

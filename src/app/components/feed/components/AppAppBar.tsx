@@ -53,9 +53,10 @@ export default function AppAppBar() {
                 display: 'flex',
                 justifyContent: { xs: 'center', md: 'flex-start' },
                 flexGrow: 1,
+                ml: { xs: '30px', md: 0 },
               }}
             >
-              <LogoIcon style={{ width: '200px' }} />
+              <LogoIcon style={{ width: '200px'  }} />
             </Box>
             <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
               <Link href="/pages/userprofile" passHref>
@@ -67,7 +68,7 @@ export default function AppAppBar() {
                 Settings
               </Button>
               <Button variant="text" color="info" size="small">
-                Highlights
+                Notifications
               </Button>
               <Button variant="text" color="info" size="small" sx={{ minWidth: 0 }}>
                 FAQ
@@ -99,7 +100,7 @@ export default function AppAppBar() {
                 </Box>
                 <MenuItem>My Profile</MenuItem>
                 <MenuItem>Settings</MenuItem>
-                <MenuItem>Highlights</MenuItem>
+                <MenuItem>Notifications</MenuItem>
                 <MenuItem>FAQ</MenuItem>
                 <MenuItem>Blog</MenuItem>
                 <Divider sx={{ my: 3 }} />

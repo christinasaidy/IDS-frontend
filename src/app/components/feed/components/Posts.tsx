@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Grid, Typography, Card, CardContent, CardMedia, Button, IconButton } from '@mui/material';
 import { ThumbUp, ThumbDown, Comment } from '@mui/icons-material';
+import { light } from '@mui/material/styles/createPalette';
 
 interface Author {
   id: number;
@@ -104,7 +105,7 @@ const Posts: React.FC = () => {
   }, []);
 
   return (
-    <Box sx={{ padding: 3 }}>
+    <Box sx={{ padding: 3, }}>
       <Grid container spacing={3}>
         {posts.map((post) => (
           <PostCard key={post.id} post={post} />

@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Avatar, Card, CardContent, Grid, Typography, Container, Box, IconButton, Button, CardMedia, TextField } from "@mui/material";
-import { ThumbUp, ThumbDown, Comment, Edit } from "@mui/icons-material";
+import { Avatar, Card,  CardContent,  Grid,  Typography,  Container,  Box,  IconButton,  Button,  CardMedia,  TextField,  Link,} from "@mui/material";
+import { ThumbUp, ThumbDown, Comment, Edit, ArrowBack } from "@mui/icons-material";
 
 // Post and Author interfaces (matching the structure from the first code)
 interface Author {
@@ -187,8 +187,6 @@ const UserProfile = () => {
         console.error(err);
       });
   };
-  
-  
 
   if (error) {
     return <Typography variant="h6" color="error">{error}</Typography>;
@@ -199,7 +197,22 @@ const UserProfile = () => {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container
+      maxWidth="lg"
+      sx={{
+        py: 4,
+        backgroundColor: 'background.default', // Ensure the light background is applied
+      }}
+    >
+      {/* Back Button */}
+      <Box sx={{ mb: 3 }}>
+        <Link href="/pages/feed" >
+          <IconButton color="primary">
+            <ArrowBack />
+          </IconButton>
+        </Link>
+      </Box>
+
       {/* Profile Section with Editable Bio */}
       <Card sx={{ textAlign: "center", padding: "24px", marginBottom: "32px", boxShadow: 3 }}>
         <Avatar
@@ -228,7 +241,8 @@ const UserProfile = () => {
               {bio}
             </Typography>
           )}
-          <IconButton onClick={toggleEditMode} color="primary">
+          <IconButton onClick={toggleEditMode} color="primary" sx ={{bottom: 12}}>
+
             <Edit />
           </IconButton>
         </Box>
@@ -241,7 +255,7 @@ const UserProfile = () => {
       </Card>
 
       {/* Posts Section */}
-      <Typography variant="h5" gutterBottom sx={{ mb: 3 }}>
+      <Typography variant="h5" gutterBottom sx={{ mb: 3, color: 'black' }}>
         Recent Posts
       </Typography>
 
