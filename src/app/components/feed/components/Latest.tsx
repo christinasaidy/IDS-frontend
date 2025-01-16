@@ -91,32 +91,45 @@ function Author({ authors, createdAt }) {
 export default function Latest() {
   const [articles, setArticles] = React.useState([]);
   const [currentPage, setCurrentPage] = React.useState(1);
+  const [totalPosts, setTotalPosts] = React.useState(0);
   const postsPerPage = 3;
 
   React.useEffect(() => {
-    const offset = (currentPage - 1) * postsPerPage;
-    fetch(`http://localhost:5128/Posts/latest?count=${postsPerPage}&offset=${offset}`)
-      .then((response) => response.json())
-      .then((data) => {
-        const updatedData = data.map((item) => ({
-          category: item.category.name,
-          title: item.title,
-          description: item.description,
-          createdAt: item.createdAt,
-          authors: [
-            {
-              name: item.author.userName,
-              avatar: '/static/images/avatar/placeholder.jpg',
-            },
-          ],
-        }));
-        setArticles(updatedData);
-      });
+    const fetchPosts = async () => {
+      const offset = (currentPage - 1) * postsPerPage;
+      const response = await fetch(`http://localhost:5128/Posts/latest?count=${postsPerPage}&offset=${offset}`);
+      const data = await response.json();
+
+      const updatedData = data.map((item) => ({
+        category: item.category.name,
+        title: item.title,
+        description: item.description,
+        createdAt: item.createdAt,
+        authors: [
+          {
+            name: item.author.userName,
+            avatar: '/static/images/avatar/placeholder.jpg',
+          },
+        ],
+      }));
+      setArticles(updatedData);
+    };
+
+    const fetchTotalPosts = async () => {
+      const response = await fetch(`http://localhost:5128/Posts/count`);
+      const count = await response.json();
+      setTotalPosts(count);
+    };
+
+    fetchPosts();
+    fetchTotalPosts();
   }, [currentPage]);
 
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
   };
+
+  const totalPages = Math.ceil(totalPosts / postsPerPage);
 
   return (
     <div>
@@ -161,7 +174,7 @@ export default function Latest() {
         <Pagination
           hidePrevButton
           hideNextButton
-          count={10}
+          count={totalPages}
           boundaryCount={10}
           page={currentPage}
           onChange={handlePageChange}
