@@ -2,7 +2,8 @@ import UserProfile from "../../components/UserProfile";
 
 export default function UserProfilePage(){
     return(
-        <UserProfile/>
-        
+        <div style={{backgroundColor: 'white'}}>
+        <UserProfile/>   
+        </div>
     )
 }

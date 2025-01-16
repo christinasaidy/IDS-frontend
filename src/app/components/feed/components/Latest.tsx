@@ -92,7 +92,7 @@ export default function Latest() {
   const [articles, setArticles] = React.useState([]);
   const [currentPage, setCurrentPage] = React.useState(1);
   const [totalPosts, setTotalPosts] = React.useState(0);
-  const postsPerPage = 3;
+  const postsPerPage = 4;
 
   React.useEffect(() => {
     const fetchPosts = async () => {
