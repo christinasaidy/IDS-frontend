@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Grid, Typography, Card, CardContent, CardMedia, Button, IconButton } from '@mui/material';
 import { ThumbUp, ThumbDown, Comment } from '@mui/icons-material';
-import { light } from '@mui/material/styles/createPalette';
 
 interface Author {
   id: number;
@@ -22,7 +21,81 @@ interface Post {
 }
 
 const PostCard: React.FC<{ post: Post }> = ({ post }) => {
-  console.log(post);
+  const [upvotes, setUpvotes] = useState(post.upvotes);
+  const [downvotes, setDownvotes] = useState(post.downvotes);
+  const [hasUpvoted, setHasUpvoted] = useState(false);
+  const [hasDownvoted, setHasDownvoted] = useState(false);
+
+  const token = localStorage.getItem('token');
+
+  useEffect(() => {
+    // Check if the user has voted on this post
+    const userVoteStatus = localStorage.getItem(`voteStatus_${post.id}`);
+    if (userVoteStatus) {
+      const { upvoted, downvoted } = JSON.parse(userVoteStatus);
+      setHasUpvoted(upvoted);
+      setHasDownvoted(downvoted);
+    }
+  }, [post.id]);
+
+  const handleUpvote = () => {
+    // Check if the user has already downvoted
+    if (hasDownvoted) {
+      setDownvotes(downvotes - 1); // Revert downvote count
+      setHasDownvoted(false);
+    }
+
+    if (hasUpvoted) return; // Prevent multiple upvotes
+
+    fetch('http://localhost:5128/Votes', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `bearer ${token}`,
+      },
+      body: JSON.stringify({
+        postId: post.id,
+        voteType: 'Upvote',
+      }),
+    })
+      .then((response) => response.text())
+      .then(() => {
+        setUpvotes(upvotes + 1);
+        setHasUpvoted(true);
+        localStorage.setItem(`voteStatus_${post.id}`, JSON.stringify({ upvoted: true, downvoted: false }));
+      })
+      .catch((error) => console.error('Error submitting upvote:', error));
+  };
+
+  const handleDownvote = () => {
+    // Check if the user has already upvoted
+    if (hasUpvoted) {
+      setUpvotes(upvotes - 1); // Revert upvote count
+      setHasUpvoted(false);
+    }
+
+    if (hasDownvoted) return; // Prevent multiple downvotes
+
+    fetch('http://localhost:5128/Votes', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `bearer ${token}`,
+      },
+      body: JSON.stringify({
+        postId: post.id,
+        voteType: 'Downvote',
+      }),
+    })
+      .then((response) => response.text())
+      .then(() => {
+        setDownvotes(downvotes + 1);
+        setHasDownvoted(true);
+        localStorage.setItem(`voteStatus_${post.id}`, JSON.stringify({ upvoted: false, downvoted: true }));
+      })
+      .catch((error) => console.error('Error submitting downvote:', error));
+  };
+
   return (
     <Grid item xs={12} sm={6} md={4}>
       <Card variant="outlined" sx={{ borderRadius: 2, boxShadow: 3 }}>
@@ -50,16 +123,22 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <IconButton sx={{ color: 'green' }}>
+                <IconButton
+                  sx={{ color: hasUpvoted ? 'green' : 'gray' }}
+                  onClick={handleUpvote}
+                >
                   <ThumbUp />
                 </IconButton>
-                <Typography sx={{ color: 'black', fontWeight: 600 }}>{post.upvotes}</Typography>
+                <Typography sx={{ color: 'black', fontWeight: 600 }}>{upvotes}</Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <IconButton sx={{ color: 'red' }}>
+                <IconButton
+                  sx={{ color: hasDownvoted ? 'red' : 'gray' }}
+                  onClick={handleDownvote}
+                >
                   <ThumbDown />
                 </IconButton>
-                <Typography sx={{ color: 'red', fontWeight: 600 }}>{post.downvotes}</Typography>
+                <Typography sx={{ color: 'red', fontWeight: 600 }}>{downvotes}</Typography>
               </Box>
             </Box>
             <Button startIcon={<Comment />} variant="outlined" color="primary">
@@ -86,26 +165,21 @@ const Posts: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
 
   useEffect(() => {
-    // Fetch posts from the API
     fetch('http://localhost:5128/Posts/top?count=4')
       .then((response) => response.json())
       .then((data) => {
-        // Check if data is an array, otherwise wrap it in an array for consistency
         const formattedPosts = Array.isArray(data) ? data : [data];
-        
-        // Add a random image for each post
         const postsWithImage = formattedPosts.map((post: any) => ({
           ...post,
           img: 'https://picsum.photos/800/450?random=' + Math.floor(Math.random() * 100),
         }));
-        
         setPosts(postsWithImage);
       })
       .catch((error) => console.error('Error fetching posts:', error));
   }, []);
 
   return (
-    <Box sx={{ padding: 3, }}>
+    <Box sx={{ padding: 3 }}>
       <Grid container spacing={3}>
         {posts.map((post) => (
           <PostCard key={post.id} post={post} />

@@ -16,7 +16,7 @@ import { styled } from '@mui/material/styles';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import RssFeedRoundedIcon from '@mui/icons-material/RssFeedRounded';
 import { useEffect, useState } from 'react';
-import Posts from './Posts'
+import FeaturedPosts from './Featured'
 
 
 const SyledCard = styled(Card)({
@@ -67,6 +67,7 @@ function Author({ authors }: { authors: { name: string; avatar: string }[] }) {
         padding: '16px',
       }}
     >
+
       <Box
         sx={{ display: 'flex', flexDirection: 'row', gap: 1, alignItems: 'center' }}
       >
@@ -137,9 +138,9 @@ export default function MainContent() {
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       <div>
         <Typography variant="h1" gutterBottom>
-          Blog
+        404: Social Life Not Found
         </Typography>
-        <Typography>Stay in the loop with the latest about our products</Typography>
+        <Typography>Stay in the loop with the latest tech news</Typography>
       </div>
       <Box
         sx={{
@@ -203,7 +204,10 @@ export default function MainContent() {
           </IconButton>
         </Box>
       </Box>
-        <Posts/>
+      <Typography variant="h2" gutterBottom>
+        Featured
+      </Typography>
+        <FeaturedPosts/>
     </Box>
   );
 }
