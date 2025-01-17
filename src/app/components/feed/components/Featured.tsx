@@ -21,16 +21,17 @@ interface Post {
 }
 
 const PostCard: React.FC<{ post: Post }> = ({ post }) => {
-  const [upvotes, setUpvotes] = useState(post.upvotes);
-  const [downvotes, setDownvotes] = useState(post.downvotes);
+  const [displayUpvotes, setDisplayUpvotes] = useState(post.upvotes);
+  const [displayDownvotes, setDisplayDownvotes] = useState(post.downvotes);
   const [hasUpvoted, setHasUpvoted] = useState(false);
   const [hasDownvoted, setHasDownvoted] = useState(false);
 
   const token = localStorage.getItem('token');
-
+  console.log("token: ",token);
   useEffect(() => {
     // Check if the user has voted on this post
-    const userVoteStatus = localStorage.getItem(`voteStatus_${post.id}`);
+    const userVoteStatus = localStorage.getItem(`voteStatus_${token}`);
+    console.log("setHasUpvoted and setHasDownvoted: ",userVoteStatus);
     if (userVoteStatus) {
       const { upvoted, downvoted } = JSON.parse(userVoteStatus);
       setHasUpvoted(upvoted);
@@ -39,14 +40,12 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
   }, [post.id]);
 
   const handleUpvote = () => {
-    // Check if the user has already downvoted
+    if (hasUpvoted) return;
+
     if (hasDownvoted) {
-      setDownvotes(downvotes - 1); // Revert downvote count
+      setDisplayDownvotes(displayDownvotes - 1);
       setHasDownvoted(false);
     }
-
-    if (hasUpvoted) return; // Prevent multiple upvotes
-
     fetch('http://localhost:5128/Votes', {
       method: 'POST',
       headers: {
@@ -58,23 +57,22 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
         voteType: 'Upvote',
       }),
     })
-      .then((response) => response.text())
-      .then(() => {
-        setUpvotes(upvotes + 1);
-        setHasUpvoted(true);
-        localStorage.setItem(`voteStatus_${post.id}`, JSON.stringify({ upvoted: true, downvoted: false }));
-      })
-      .catch((error) => console.error('Error submitting upvote:', error));
+    .then(() => {
+      setDisplayUpvotes(displayUpvotes + 1);
+      setHasUpvoted(true);
+      localStorage.setItem(`voteStatus_${token}`, JSON.stringify({ upvoted: true, downvoted: false }));
+    })
+    .catch((error) => console.error('Error submitting upvote:', error));
   };
 
   const handleDownvote = () => {
-    // Check if the user has already upvoted
+
+    if (hasDownvoted) return;
+
     if (hasUpvoted) {
-      setUpvotes(upvotes - 1); // Revert upvote count
+      setDisplayUpvotes(displayUpvotes - 1);
       setHasUpvoted(false);
     }
-
-    if (hasDownvoted) return; // Prevent multiple downvotes
 
     fetch('http://localhost:5128/Votes', {
       method: 'POST',
@@ -87,11 +85,10 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
         voteType: 'Downvote',
       }),
     })
-      .then((response) => response.text())
       .then(() => {
-        setDownvotes(downvotes + 1);
+        setDisplayDownvotes(displayDownvotes + 1);
         setHasDownvoted(true);
-        localStorage.setItem(`voteStatus_${post.id}`, JSON.stringify({ upvoted: false, downvoted: true }));
+        localStorage.setItem(`voteStatus_${token}`, JSON.stringify({ upvoted: false, downvoted: true }));
       })
       .catch((error) => console.error('Error submitting downvote:', error));
   };
@@ -129,7 +126,7 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
                 >
                   <ThumbUp />
                 </IconButton>
-                <Typography sx={{ color: 'black', fontWeight: 600 }}>{upvotes}</Typography>
+                <Typography sx={{ color: 'black', fontWeight: 600 }}>{displayUpvotes}</Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <IconButton
@@ -138,7 +135,7 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
                 >
                   <ThumbDown />
                 </IconButton>
-                <Typography sx={{ color: 'red', fontWeight: 600 }}>{downvotes}</Typography>
+                <Typography sx={{ color: 'red', fontWeight: 600 }}>{displayDownvotes}</Typography>
               </Box>
             </Box>
             <Button startIcon={<Comment />} variant="outlined" color="primary">
@@ -161,7 +158,7 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
   );
 };
 
-const Posts: React.FC = () => {
+const FeaturedPosts: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
 
   useEffect(() => {
@@ -189,4 +186,4 @@ const Posts: React.FC = () => {
   );
 };
 
-export default Posts;
+export default FeaturedPosts;

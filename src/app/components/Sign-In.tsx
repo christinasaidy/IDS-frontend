@@ -17,6 +17,7 @@ import { styled } from "@mui/material/styles";
 import ForgotPassword from "./ForgotPassword";
 import { GoogleIcon, FacebookIcon, LogoIcon } from "./CustomIcons";
 import AppTheme from "./shared-theme/AppTheme";
+import { CircularProgress } from '@mui/material';
 
 const lightTheme = {
   palette: {
@@ -65,11 +66,13 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
   const [usernameErrorMessage, setUsernameErrorMessage] = React.useState("");
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState("");
+  const [isLoading, setIsLoading] = React.useState(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!validateInputs()) return;
+    setIsLoading(true);
 
     const data = new FormData(event.currentTarget);
     const username = data.get("username");
@@ -95,7 +98,10 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
       }
     } catch (err) {
       console.error("Error during sign-in:", err);
-      alert("An unexpected error occurred");
+    } finally {
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 2000);
     }
   };
 
@@ -131,6 +137,26 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
       <CssBaseline />
       <SignInContainer direction="column" justifyContent="space-between">
         <Card variant="outlined">
+
+        {isLoading ? (
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                  backgroundColor: "rgba(255, 255, 255, 0.8)",
+                  zIndex: 1,
+                }}
+              >
+                <CircularProgress size={70} color="primary" />
+              </Box>
+        ) : null}
+
           <LogoIcon style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", width: "100%" }} />
           <Typography component="h1" variant="h4" sx={{ width: "100%", fontSize: "clamp(2rem, 10vw, 2.15rem)", marginTop: "-50px" }}>
             Sign in
@@ -164,9 +190,15 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
               />
             </FormControl>
             <FormControlLabel control={<Checkbox value="remember" color="primary" />} label="Remember me" />
-            <Button type="submit" fullWidth variant="contained">
+            <Button 
+              type="submit" 
+              variant="contained" 
+              fullWidth 
+              disabled={isLoading}
+              sx={{ mt: 3, mb: 2 }}
+            >
               Sign in
-            </Button>
+           </Button>
           </Box>
           <Divider>
             <Typography sx={{ color: "text.secondary" }}>or</Typography>

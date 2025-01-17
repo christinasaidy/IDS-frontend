@@ -8,7 +8,7 @@ import MainContent from './components/MainContent';
 import Latest from './components/Latest';
 import Footer from './components/Footer';
 import AppTheme from '../shared-theme/AppTheme';
-
+import CreatePost from './components/CreatePost';
 export default function Feed(props: { disableCustomTheme?: boolean }) {
   return (
     <AppTheme {...props}>
@@ -22,6 +22,7 @@ export default function Feed(props: { disableCustomTheme?: boolean }) {
       >
         <MainContent />
         <Latest />
+        <CreatePost />
       </Container>
       <Footer />
     </AppTheme>

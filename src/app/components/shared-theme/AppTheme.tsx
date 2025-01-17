@@ -12,7 +12,7 @@ interface AppThemeProps {
   children: React.ReactNode;
   disableCustomTheme?: boolean;
   themeComponents?: ThemeOptions['components'];
-  mode?: 'light' | 'dark'; // Optional prop to override system preference
+  mode: 'light'; 
 }
 
 export default function AppTheme(props: AppThemeProps) {
@@ -21,18 +21,20 @@ export default function AppTheme(props: AppThemeProps) {
   const prefersDarkMode = React.useMemo(() => window.matchMedia('(prefers-color-scheme: dark)').matches, []);
 
   const theme = React.useMemo(() => {
-    const currentMode = mode || (disableCustomTheme ? 'light' : prefersDarkMode ? 'dark' : 'light');
+    const currentMode = 'light';
     return disableCustomTheme
       ? {}
       : createTheme({
           palette: {
-            mode: currentMode, // Use the resolved mode (light or dark)
+            mode: currentMode, 
             background: {
               default: currentMode === 'light' ? '#ffffff' : '#121212', // Explicitly set light background
               paper: currentMode === 'light' ? '#ffffff' : '#333333', // Paper background
             },
           },
-          colorSchemes,
+          colorSchemes: {
+            light: colorSchemes.light // Only include light scheme
+          },          
           typography,
           shadows,
           shape,

@@ -16,6 +16,7 @@ import MuiCard from "@mui/material/Card";
 import { styled } from "@mui/material/styles";
 import AppTheme from "./shared-theme/AppTheme";
 import { GoogleIcon, FacebookIcon, LogoIcon } from "./CustomIcons";
+import { CircularProgress } from '@mui/material';
 
 const lightTheme = {
   palette: {
@@ -66,6 +67,7 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
   const [emailErrorMessage, setEmailErrorMessage] = React.useState("");
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState("");
+  const [isLoading, setIsLoading] = React.useState(false);
 
   const validateInputs = () => {
     const username = document.getElementById("username") as HTMLInputElement;
@@ -113,6 +115,9 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setUsernameErrorMessage("");
+    if (!validateInputs()) return;
+    setIsLoading(true);
+
 
     const formData = new FormData(event.target as HTMLFormElement);
     const data: FormData = {
@@ -147,7 +152,12 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
       }
     } catch (error: any) {
       console.error("Error:", error.message);
+    } finally {
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 2000);
     }
+    
   };
 
   return (
@@ -155,6 +165,24 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
       <CssBaseline />
       <SignUpContainer direction="column" justifyContent="space-between">
         <Card variant="outlined">
+          {isLoading ? (
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    height: "100%",
+                    backgroundColor: "rgba(255, 255, 255, 0.8)",
+                    zIndex: 1,
+                  }}
+                >
+                  <CircularProgress size={70} color="primary" />
+                </Box>
+          ) : null}
           <LogoIcon
             style={{
               display: "flex",

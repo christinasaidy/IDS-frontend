@@ -98,7 +98,9 @@ export default function AppAppBar() {
                     <CloseRoundedIcon />
                   </IconButton>
                 </Box>
+                <Link href="/pages/userprofile" passHref>
                 <MenuItem>My Profile</MenuItem>
+                </Link>
                 <MenuItem>Settings</MenuItem>
                 <MenuItem>Notifications</MenuItem>
                 <MenuItem>FAQ</MenuItem>
