@@ -9,5 +9,6 @@
 * Users can Edit and save their bio
 * Users can view latest posted posts(with pagination pages)
 * Users can Upvote or Downvote on posts
+* Users can create a Post
   
   
