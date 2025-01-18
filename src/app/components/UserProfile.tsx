@@ -4,21 +4,19 @@ import React, { useEffect, useState, ChangeEvent } from "react";
 import {
   Avatar,
   Card,
-  CardContent,
   Grid,
   Typography,
   Container,
   Box,
   IconButton,
   Button,
-  CardMedia,
   TextField,
   Link,
   Menu,
   MenuItem,
 } from "@mui/material";
-import { ThumbUp, ThumbDown, Comment, Edit, ArrowBack, MoreVert } from "@mui/icons-material";
-
+import { Edit, ArrowBack, MoreVert } from "@mui/icons-material";
+import PostCard from "./feed/components/PostCard";
 // Define interfaces for Post and Author
 interface Author {
   id: number;
@@ -38,65 +36,6 @@ interface Post {
   img: string;
 }
 
-const PostCard: React.FC<{ post: Post }> = ({ post }) => {
-  return (
-    <Grid item xs={12} sm={6} md={4}>
-      <Card variant="outlined" sx={{ borderRadius: 2, boxShadow: 3 }}>
-        <CardMedia
-          component="img"
-          alt={post.title}
-          image={post.img || "https://picsum.photos/800/450?random=1"}
-          sx={{
-            height: 200,
-            objectFit: "cover",
-            borderTopLeftRadius: 2,
-            borderTopRightRadius: 2,
-          }}
-        />
-        <CardContent>
-          <Typography gutterBottom variant="caption" color="primary" component="div">
-            {post.category.name}
-          </Typography>
-          <Typography gutterBottom variant="h6" component="div">
-            {post.title}
-          </Typography>
-          <Typography variant="body2" color="text.secondary" gutterBottom>
-            {post.description}
-          </Typography>
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-              <Box sx={{ display: "flex", alignItems: "center" }}>
-                <IconButton sx={{ color: "green" }}>
-                  <ThumbUp />
-                </IconButton>
-                <Typography sx={{ color: "black", fontWeight: 600 }}>{post.upvotes}</Typography>
-              </Box>
-              <Box sx={{ display: "flex", alignItems: "center" }}>
-                <IconButton sx={{ color: "red" }}>
-                  <ThumbDown />
-                </IconButton>
-                <Typography sx={{ color: "red", fontWeight: 600 }}>{post.downvotes}</Typography>
-              </Box>
-            </Box>
-            <Button startIcon={<Comment />} variant="outlined" color="primary" sx={{ color: "black" }}>
-              Comment
-            </Button>
-          </Box>
-        </CardContent>
-        <Box sx={{ display: "flex", alignItems: "center", padding: 1 }}>
-          <img
-            src={post.author.avatar || "https://picsum.photos/800/450?random=1"}
-            alt="Author Avatar"
-            style={{ width: 30, height: 30, borderRadius: "50%" }}
-          />
-          <Typography variant="body2" color="text.secondary" sx={{ marginLeft: 1 }}>
-            {post.author.userName}
-          </Typography>
-        </Box>
-      </Card>
-    </Grid>
-  );
-};
 
 const UserProfile = () => {
   const [username, setUsername] = useState<string | null>(null);
@@ -381,8 +320,8 @@ const UserProfile = () => {
       </Card>
 
       {/* Posts Section */}
-      <Typography variant="h5" gutterBottom sx={{ mb: 3, color: "black" }}>
-        Recent Posts
+      <Typography variant="h3" gutterBottom sx={{ mb: 3, color: "black" }}>
+        My Posts
       </Typography>
       {posts.length === 0 ? (
         <Typography variant="h6" color="primary">

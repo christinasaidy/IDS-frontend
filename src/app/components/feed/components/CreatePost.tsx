@@ -13,6 +13,10 @@ interface CreatePostProps {
 
 const CreatePost: React.FC<CreatePostProps> = ({ sx }) => {
   const [open, setOpen] = React.useState(false);
+  const [title, setTitle] = React.useState('');
+  const [description, setDescription] = React.useState('');
+  const [tags, setTags] = React.useState('');
+  const [categoryName, setCategoryName] = React.useState('');
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -21,6 +25,38 @@ const CreatePost: React.FC<CreatePostProps> = ({ sx }) => {
   const handleClose = () => {
     setOpen(false);
   };
+  const handlePost = async () => {
+    const postData = {
+      title,
+      description,
+      tags,
+      categoryName,
+    };
+  
+    const token = localStorage.getItem('token');
+  
+    try {
+      const response = await fetch('http://localhost:5128/Posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(postData),
+      });
+  
+      if (response.ok) {
+        console.log('Post created successfully');
+        handleClose();
+        window.location.reload();
+      } else {
+        console.error('Error creating post:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Network error:', error);
+    }
+  };
+  
 
   return (
     <>
@@ -48,6 +84,8 @@ const CreatePost: React.FC<CreatePostProps> = ({ sx }) => {
             type="text"
             fullWidth
             variant="outlined"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
           />
           <TextField
             margin="dense"
@@ -57,6 +95,8 @@ const CreatePost: React.FC<CreatePostProps> = ({ sx }) => {
             variant="outlined"
             multiline
             rows={4}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
           />
           <TextField
             margin="dense"
@@ -65,6 +105,8 @@ const CreatePost: React.FC<CreatePostProps> = ({ sx }) => {
             fullWidth
             variant="outlined"
             helperText="Separate tags with commas"
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
           />
           <TextField
             margin="dense"
@@ -72,27 +114,15 @@ const CreatePost: React.FC<CreatePostProps> = ({ sx }) => {
             type="text"
             fullWidth
             variant="outlined"
-          />
-          <TextField
-            margin="dense"
-            label="Upload Images"
-            type="file"
-            fullWidth
-            variant="outlined"
-            InputLabelProps={{
-              shrink: true,
-            }}
-            inputProps={{
-              multiple: true,
-              accept: "image/*",
-            }}
+            value={categoryName}
+            onChange={(e) => setCategoryName(e.target.value)}
           />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose} color="primary">
             Cancel
           </Button>
-          <Button onClick={handleClose} color="primary">
+          <Button onClick={handlePost} color="primary">
             Post
           </Button>
         </DialogActions>
