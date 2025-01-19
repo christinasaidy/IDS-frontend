@@ -102,7 +102,7 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
             }}
           >
             {images.length > 0 ? (
-              <Carousel autoPlay={false} navButtonsAlwaysVisible>
+              <Carousel autoPlay={false}  navbuttonsalwaysvisible="true">
                 {images.map((image, index) => (
                   <img
                     key={index}
