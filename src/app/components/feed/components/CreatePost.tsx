@@ -134,6 +134,8 @@ const CreatePost: React.FC = () => {
             variant="outlined"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
           />
           <TextField
             margin="dense"
@@ -145,6 +147,8 @@ const CreatePost: React.FC = () => {
             rows={4}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
           />
           <TextField
             margin="dense"
@@ -153,6 +157,8 @@ const CreatePost: React.FC = () => {
             fullWidth
             variant="outlined"
             helperText="Separate tags with commas"
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
             value={tags}
             onChange={(e) => setTags(e.target.value)}
           />

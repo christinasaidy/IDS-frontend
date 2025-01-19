@@ -116,7 +116,6 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
     event.preventDefault();
     setUsernameErrorMessage("");
     if (!validateInputs()) return;
-    setIsLoading(true);
 
 
     const formData = new FormData(event.target as HTMLFormElement);
@@ -138,11 +137,11 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
       if (response.ok) {
         const { token } = await response.json();
         console.log("Signup successful, token:", token);
-
-        // Save the token
+        setIsLoading(true);
         localStorage.setItem("token", token);
-
-        // Navigate to the feed page
+          setTimeout(() => {
+            setIsLoading(false);
+          }, 2000);
         window.location.href = "/pages/feed";
       } else if (response.status === 409) {
         setUsernameErrorMessage("This username is already taken.");
@@ -152,12 +151,7 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
       }
     } catch (error: any) {
       console.error("Error:", error.message);
-    } finally {
-      setTimeout(() => {
-        setIsLoading(false);
-      }, 2000);
-    }
-    
+    } 
   };
 
   return (
@@ -208,9 +202,15 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
                 required
                 fullWidth
                 id="username"
-                placeholder="Your username" 
+                placeholder="Your username"
                 error={usernameError}
                 helperText={usernameErrorMessage}
+                sx={{
+                  "& .MuiFormHelperText-root": {
+                    color: "red", // Custom red color
+                    fontSize: "0.875rem", // Custom font size
+                  },
+                }}
               />
             </FormControl>
             <FormControl>
@@ -225,6 +225,12 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
                 variant="outlined"
                 error={emailError}
                 helperText={emailErrorMessage}
+                sx={{
+                  "& .MuiFormHelperText-root": {
+                    color: "red", // Custom red color
+                    fontSize: "0.875rem", // Custom font size
+                  },
+                }}
               />
             </FormControl>
             <FormControl>
@@ -240,6 +246,12 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
                 variant="outlined"
                 error={passwordError}
                 helperText={passwordErrorMessage}
+                sx={{
+                  "& .MuiFormHelperText-root": {
+                    color: "red", // Custom red color
+                    fontSize: "0.875rem", // Custom font size
+                  },
+                }}
               />
             </FormControl>
             <FormControlLabel

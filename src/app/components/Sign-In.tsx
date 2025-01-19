@@ -14,7 +14,6 @@ import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import MuiCard from "@mui/material/Card";
 import { styled } from "@mui/material/styles";
-import ForgotPassword from "./ForgotPassword";
 import { GoogleIcon, FacebookIcon, LogoIcon } from "./CustomIcons";
 import AppTheme from "./shared-theme/AppTheme";
 import { CircularProgress } from '@mui/material';
@@ -61,18 +60,35 @@ const SignInContainer = styled(Stack)(({ theme }) => ({
   },
 }));
 
+const ErrorMessage = styled(Typography)(({ theme }) => ({
+  color: theme.palette.error.main,
+  backgroundColor: theme.palette.error.contrastText,
+  padding: theme.spacing(1.5),
+  borderRadius: theme.shape.borderRadius,
+  marginTop: theme.spacing(2),
+  textAlign: 'center',
+  border: `1px solid ${theme.palette.error.main}`,
+}));
+
 export default function SignIn(props: { disableCustomTheme?: boolean }) {
   const [usernameError, setUsernameError] = React.useState(false);
   const [usernameErrorMessage, setUsernameErrorMessage] = React.useState("");
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
+  const [generalError, setGeneralError] = React.useState(""); // State for general error message
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!validateInputs()) return;
-    setIsLoading(true);
+    // Reset general error message
+    setGeneralError("");
+
+    // Validate inputs
+    if (!validateInputs()) {
+      setGeneralError("Please check your username and password.");
+      return; 
+    }
 
     const data = new FormData(event.currentTarget);
     const username = data.get("username");
@@ -88,20 +104,22 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
       });
 
       if (response.ok) {
+        setIsLoading(true);
         const result = await response.json();
         console.log(result);
         localStorage.setItem("token", result.token);
         window.location.href = "/pages/feed";
+        setTimeout(() => {
+          setIsLoading(false);
+      }, 2000);
       } else {
         const error = await response.json();
-        alert(error.message || "Sign-in failed");
+        console.error("Error during sign-in:", error);
+        setGeneralError("Please check your username and password.");
       }
     } catch (err) {
       console.error("Error during sign-in:", err);
-    } finally {
-      setTimeout(() => {
-        setIsLoading(false);
-      }, 2000);
+      setGeneralError("Please check your username and password.");
     }
   };
 
@@ -138,29 +156,37 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
       <SignInContainer direction="column" justifyContent="space-between">
         <Card variant="outlined">
 
-        {isLoading ? (
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "100%",
-                  backgroundColor: "rgba(255, 255, 255, 0.8)",
-                  zIndex: 1,
-                }}
-              >
-                <CircularProgress size={70} color="primary" />
-              </Box>
-        ) : null}
+          {isLoading ? (
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                backgroundColor: "rgba(255, 255, 255, 0.8)",
+                zIndex: 1,
+              }}
+            >
+              <CircularProgress size={70} color="primary" />
+            </Box>
+          ) : null}
 
           <LogoIcon style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", width: "100%" }} />
           <Typography component="h1" variant="h4" sx={{ width: "100%", fontSize: "clamp(2rem, 10vw, 2.15rem)", marginTop: "-50px" }}>
             Sign in
           </Typography>
+
+          {/* Display general error message */}
+          {generalError && (
+            <ErrorMessage variant="body1">
+              {generalError}
+            </ErrorMessage>
+          )}
+
           <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
             <FormControl error={usernameError}>
               <FormLabel htmlFor="username">Username</FormLabel>
@@ -187,6 +213,7 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
                 autoComplete="current-password"
                 variant="outlined"
                 helperText={passwordErrorMessage}
+                error={passwordError}
               />
             </FormControl>
             <FormControlLabel control={<Checkbox value="remember" color="primary" />} label="Remember me" />
@@ -198,7 +225,7 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
               sx={{ mt: 3, mb: 2 }}
             >
               Sign in
-           </Button>
+            </Button>
           </Box>
           <Divider>
             <Typography sx={{ color: "text.secondary" }}>or</Typography>
