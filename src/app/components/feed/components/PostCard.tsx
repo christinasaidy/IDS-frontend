@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Box, Grid, Typography, Card, CardContent, Button, IconButton } from '@mui/material';
 import { ThumbUp, ThumbDown, Comment } from '@mui/icons-material';
 import Link from 'next/link';
-import Carousel from 'mui-carousel'; // Import the Carousel component
 
 interface Author {
   id: number;
@@ -31,6 +30,7 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
   const [images, setImages] = useState<string[]>([]);
 
   const token = localStorage.getItem('token');
+
   useEffect(() => {
     // Fetch post images
     fetch(`http://localhost:5128/Posts/${post.id}/images`, {
@@ -38,21 +38,20 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
     })
       .then(async (response) => {
         if (!response.ok) {
-          // If the response is not OK (e.g., 404), handle it gracefully
-          const errorMessage = await response.text(); // Read the text response
+          const errorMessage = await response.text();
           console.warn(`Error fetching images: ${errorMessage}`);
           return [];
         }
-        return response.json(); // Parse JSON if the response is OK
+        return response.json();
       })
       .then((data) => {
         if (Array.isArray(data)) {
-          // Map the relative image paths to absolute URLs
           const fullImagePaths = data.map((image) => `http://localhost:5128${image.imagePath}`);
           setImages(fullImagePaths);
         }
       })
-      .catch((error) => console.error('Error fetching images:', error));  
+      .catch((error) => console.error('Error fetching images:', error));
+
     // Fetch username
     fetch('http://localhost:5128/Users/username', {
       method: 'GET',
@@ -87,9 +86,89 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
         setHasDownvoted(userVotes.downvoted);
       })
       .catch((error) => console.error('Error fetching vote status:', error));
-  }, [post.id, token, userName]); // Dependencies for the useEffect hook
+  }, [post.id, token, userName]);
 
-  
+  // Function to render images based on their count
+  const renderImages = () => {
+    if (images.length === 0) {
+      return (
+        <Box
+          component="img"
+          src={'https://via.placeholder.com/800x450?text=No+Image+Available'}
+          alt="Placeholder"
+          sx={{ width: '100%', height: 200, objectFit: 'cover', borderRadius: '8px 8px 0 0' }}
+        />
+      );
+    }
+
+    switch (images.length) {
+      case 1:
+        return (
+          <Box
+            component="img"
+            src={images[0]}
+            alt="Post image"
+            sx={{ width: '100%', height: 200, objectFit: 'cover', borderRadius: '8px 8px 0 0' }}
+          />
+        );
+
+      case 2:
+        return (
+          <Box sx={{ display: 'flex', gap: '2px', height: 200 }}>
+            {images.map((image, index) => (
+              <Box
+                key={index}
+                component="img"
+                src={image}
+                alt={`Post image ${index + 1}`}
+                sx={{ width: '50%', height: '100%', objectFit: 'cover' }}
+              />
+            ))}
+          </Box>
+        );
+
+      case 3:
+        return (
+          <Box sx={{ display: 'flex', gap: '2px', height: 200 }}>
+            <Box
+              component="img"
+              src={images[0]}
+              alt="Post image 1"
+              sx={{ width: '50%', height: '100%', objectFit: 'cover' }}
+            />
+            <Box sx={{ width: '50%', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              {images.slice(1).map((image, index) => (
+                <Box
+                  key={index}
+                  component="img"
+                  src={image}
+                  alt={`Post image ${index + 2}`}
+                  sx={{ width: '100%', height: '50%', objectFit: 'cover' }}
+                />
+              ))}
+            </Box>
+          </Box>
+        );
+
+      case 4:
+        return (
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '2px', height: 200 }}>
+            {images.map((image, index) => (
+              <Box
+                key={index}
+                component="img"
+                src={image}
+                alt={`Post image ${index + 1}`}
+                sx={{ width: 'calc(50% - 1px)', height: '50%', objectFit: 'cover' }}
+              />
+            ))}
+          </Box>
+        );
+
+      default:
+        return null;
+    }
+  };
 
   return (
     <Grid item xs={12} sm={6} md={4}>
@@ -98,28 +177,10 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
           <Box
             sx={{
               position: 'relative',
-              '&:hover .hover-overlay': { opacity: 1 }, 
+              '&:hover .hover-overlay': { opacity: 1 },
             }}
           >
-            {images.length > 0 ? (
-              <Carousel autoPlay={false}  navbuttonsalwaysvisible="true">
-                {images.map((image, index) => (
-                  <img
-                    key={index}
-                    src={image}
-                    alt={`Post image ${index + 1}`}
-                    style={{ width: '100%', height: 200, objectFit: 'cover', borderRadius: '8px 8px 0 0' }}
-                  />
-                ))}
-              </Carousel>
-            ) : (
-              <Box
-                component="img"
-                src={'https://via.placeholder.com/800x450?text=No+Image+Available'}
-                alt="Placeholder"
-                sx={{ height: 200, objectFit: 'cover', borderRadius: '8px 8px 0 0' }}
-              />
-            )}
+            {renderImages()}
           </Box>
         </Link>
         <CardContent>
@@ -153,7 +214,7 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
                 <Typography sx={{ fontWeight: 600 }}>{displayDownvotes}</Typography>
               </Box>
             </Box>
-            <Button startIcon={<Comment />} variant="outlined">
+            <Button startIcon={<Comment />} variant="outlined" color='inherit'>
               Comment
             </Button>
           </Box>
