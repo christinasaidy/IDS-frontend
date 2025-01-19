@@ -21,7 +21,6 @@ export default function Feed(props: { disableCustomTheme?: boolean }) {
         sx={{ display: 'flex', flexDirection: 'column', my: 16, gap: 4 }}
       >
         <MainContent />
-        <Latest />
         <CreatePost />
       </Container>
       <Footer />
