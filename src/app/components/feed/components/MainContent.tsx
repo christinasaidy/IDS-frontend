@@ -38,6 +38,7 @@ export default function MainContent() {
   const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
+  const [searchResults, setSearchResults] = useState<Post[]>([]);
 
   // Fetch categories on component mount
   useEffect(() => {
@@ -66,6 +67,21 @@ export default function MainContent() {
     setSelectedCategoryId(categoryId);
   };
 
+  const handleSearch = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const query = event.target.value;
+    if (query.length > 2) {
+      try {
+        const response = await fetch(`http://localhost:5128/Posts/search?query=${query}`);
+        const data = await response.json();
+        setSearchResults(data); // Update search results
+      } catch (error) {
+        console.error('Error fetching search results:', error);
+      }
+    } else {
+      setSearchResults([]); // Clear search results if query is too short
+    }
+  };
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       <div>
@@ -83,7 +99,7 @@ export default function MainContent() {
           overflow: 'auto',
         }}
       >
-        <Search />
+        <Search onSearch={handleSearch} />
         <IconButton size="small" aria-label="RSS feed">
           <RssFeedRoundedIcon />
         </IconButton>
@@ -140,13 +156,24 @@ export default function MainContent() {
             overflow: 'auto',
           }}
         >
-          <Search />
+          <Search onSearch={handleSearch} />
           <IconButton size="small" aria-label="RSS feed">
             <RssFeedRoundedIcon />
           </IconButton>
         </Box>
       </Box>
-      {selectedCategoryId ? (
+      {searchResults.length > 0 ? (
+        <Box sx={{ padding: 3 }}>
+          <Typography variant="h2" gutterBottom>
+            Search Results
+          </Typography>
+          <Grid container spacing={3}>
+            {searchResults.map((post) => (
+              <PostCard key={post.id} post={post} />
+            ))}
+          </Grid>
+        </Box>
+      ) : selectedCategoryId ? (
         <Box sx={{ padding: 3 }}>
           <Grid container spacing={3}>
             {posts.map((post) => (
@@ -167,14 +194,20 @@ export default function MainContent() {
   );
 }
 
-// Search component (unchanged)
-export function Search() {
+export function Search({ onSearch }: { onSearch: (event: React.ChangeEvent<HTMLInputElement>) => void }) {
+  const [searchQuery, setSearchQuery] = useState('');
+
   return (
     <FormControl sx={{ width: { xs: '100%', md: '25ch' } }} variant="outlined">
       <OutlinedInput
         size="small"
         id="search"
         placeholder="Search…"
+        value={searchQuery}
+        onChange={(event) => {
+          setSearchQuery(event.target.value);
+          onSearch(event);
+        }}
         sx={{ flexGrow: 1 }}
         startAdornment={
           <InputAdornment position="start" sx={{ color: 'text.primary' }}>

@@ -94,6 +94,7 @@ const CreatePost: React.FC = () => {
   
       alert('Post created successfully!');
       handleClose();
+      window.location.reload(); 
     } catch (error: any) {
       console.error('Error creating post:', error);
       alert(error.message || 'An error occurred while creating the post.');
