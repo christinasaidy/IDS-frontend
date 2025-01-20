@@ -54,7 +54,42 @@ const TitleTypography = styled(Typography)(({ theme }) => ({
   },
 }));
 
+const token = localStorage.getItem('token');
 function Author({ authors, createdAt }) {
+  const [profilePictures, setProfilePictures] = React.useState({});
+
+  React.useEffect(() => {
+    authors.forEach(async (author) => {
+      try {
+        // Fetch profile picture
+        const response = await fetch(`http://localhost:5128/Users/profile-picture/${author.id}`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch profile picture');
+        }
+
+        const data = await response.json();
+        const fullProfilePictureUrl = `http://localhost:5128${data.profilePictureUrl}`;
+        
+        setProfilePictures((prev) => ({
+          ...prev,
+          [author.id]: fullProfilePictureUrl,
+        }));
+      } catch (error) {
+        console.error('Error fetching profile picture:', error);
+        setProfilePictures((prev) => ({
+          ...prev,
+          [author.id]: '', // Set to empty string if no profile picture is available
+        }));
+      }
+    });
+  }, [authors]);
+
   return (
     <Box
       sx={{
@@ -65,15 +100,13 @@ function Author({ authors, createdAt }) {
         justifyContent: 'space-between',
       }}
     >
-      <Box
-        sx={{ display: 'flex', flexDirection: 'row', gap: 1, alignItems: 'center' }}
-      >
+      <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1, alignItems: 'center' }}>
         <AvatarGroup max={3}>
           {authors.map((author, index) => (
             <Avatar
               key={index}
               alt={author.name}
-              src={author.avatar}
+              src={profilePictures[author.id]}
               sx={{ width: 24, height: 24 }}
             />
           ))}
@@ -93,6 +126,7 @@ export default function Latest() {
   const [latestPosts, setlatestPosts] = React.useState([]);
   const [currentPage, setCurrentPage] = React.useState(1);
   const [totalPosts, setTotalPosts] = React.useState(0);
+  
   const postsPerPage = 4;
 
   React.useEffect(() => {
@@ -107,13 +141,16 @@ export default function Latest() {
         description: item.description,
         createdAt: item.createdAt,
         id: item.id,
+
         authors: [
           {
             name: item.author.userName,
+            id: item.author.id,
             avatar: '/static/images/avatar/placeholder.jpg',
           },
         ],
       }));
+      console.log(updatedData)
       setlatestPosts(updatedData);
       console.log(latestPosts);
     };
@@ -124,6 +161,7 @@ export default function Latest() {
       setTotalPosts(count);
     };
 
+    
     fetchPosts();
     fetchTotalPosts();
   }, [currentPage]);
