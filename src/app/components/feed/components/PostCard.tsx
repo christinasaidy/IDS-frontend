@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Grid, Typography, Card, CardContent, Button, IconButton } from '@mui/material';
+import { Box, Grid, Typography, Card, CardContent, Button, IconButton, Avatar } from '@mui/material';
 import { ThumbUp, ThumbDown, Comment } from '@mui/icons-material';
 import Link from 'next/link';
 
@@ -28,6 +28,7 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
   const [hasDownvoted, setHasDownvoted] = useState(false);
   const [userName, setUserName] = useState('');
   const [images, setImages] = useState<string[]>([]);
+  const [profilePicture, setProfilePicture] = useState<string>(''); // State for profile picture
 
   const token = localStorage.getItem('token');
 
@@ -65,54 +66,70 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
       .catch((error) => console.error('Error fetching username:', error));
 
     // Fetch vote status
-      fetch(`http://localhost:5128/Votes/Post/${post.id}`, {
-          method: 'GET',
-          headers: {
-              Authorization: `Bearer ${token}`,
-          },
-      })
+    fetch(`http://localhost:5128/Votes/Post/${post.id}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
       .then(async (response) => {
         if (!response.ok) {
-            let errorMessage = "An unknown error occurred";
-            try {
-                // Attempt to parse the response as JSON
-                const error = await response.json();
-                errorMessage = error.message || JSON.stringify(error);
-            } catch (error) {
-                // If JSON parsing fails, fall back to plain text
-                errorMessage = await response.text();
-            }
-            console.warn('No votes found or another error occurred:', errorMessage);
-            return [];
+          let errorMessage = "An unknown error occurred";
+          try {
+            const error = await response.json();
+            errorMessage = error.message || JSON.stringify(error);
+          } catch (error) {
+            errorMessage = await response.text();
+          }
+          console.warn('No votes found or another error occurred:', errorMessage);
+          return [];
         }
         return response.json();
+      })
+      .then((data) => {
+        const userVotes = data.reduce(
+          (votes: { upvoted: boolean; downvoted: boolean }, vote: { voteType: string; userName: string }) => {
+            if (vote.userName === userName) {
+              if (vote.voteType === 'Upvote') votes.upvoted = true;
+              if (vote.voteType === 'Downvote') votes.downvoted = true;
+            }
+            return votes;
+          },
+          { upvoted: false, downvoted: false }
+        );
+        setHasUpvoted(userVotes.upvoted);
+        setHasDownvoted(userVotes.downvoted);
+      })
+      .catch((error) => console.error('Error processing vote data:', error));
+
+    // Fetch profile picture
+    fetch(`http://localhost:5128/Users/profile-picture/${post.author.id}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     })
-    
-          .then((data) => {
-              const userVotes = data.reduce(
-                  (votes: { upvoted: boolean; downvoted: boolean }, vote: { voteType: string; userName: string }) => {
-                      if (vote.userName === userName) {
-                          if (vote.voteType === 'Upvote') votes.upvoted = true;
-                          if (vote.voteType === 'Downvote') votes.downvoted = true;
-                      }
-                      return votes;
-                  },
-                  { upvoted: false, downvoted: false }
-              );
-              setHasUpvoted(userVotes.upvoted);
-              setHasDownvoted(userVotes.downvoted);
-          })
-          .catch((error) => console.error('Error processing vote data:', error));
-  }, [post.id, token, userName]);
-  
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to fetch profile picture');
+        }
+        return response.json();
+      })
+      .then((data) => {
+        // Construct the full URL by prepending the base URL
+        const fullProfilePictureUrl = `http://localhost:5128${data.profilePictureUrl}`;
+        setProfilePicture(fullProfilePictureUrl);
+      })
+      .catch((error) => {
+        console.error('Error fetching profile picture:', error);
+        setProfilePicture(''); // Set to empty string if no profile picture is available
+      });
+  }, [post.id, token, userName, post.author.id]);
 
   const handleUpvote = () => {
-    // Check if the user has already upvoted
     if (hasUpvoted) {
-      // If already upvoted, remove the upvote
       setDisplayUpvotes(displayUpvotes - 1);
       setHasUpvoted(false);
-      // Send a request to remove the upvote
       fetch('http://localhost:5128/Votes', {
         method: 'Post',
         headers: {
@@ -121,20 +138,18 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
         },
         body: JSON.stringify({
           postId: post.id,
-          voteType: 'Upvote', // Indicate you're removing the upvote
+          voteType: 'Upvote',
         }),
       })
         .then(() => {
-          fetchVoteStatus(); // Re-fetch vote status after removing the vote
+          fetchVoteStatus();
         })
         .catch((error) => console.error('Error removing upvote:', error));
     } else {
-      // Check if the user had downvoted, and if so, cancel the downvote
       if (hasDownvoted) {
         setDisplayDownvotes(displayDownvotes - 1);
         setHasDownvoted(false);
       }
-      // If not already upvoted, proceed with adding an upvote
       fetch('http://localhost:5128/Votes', {
         method: 'POST',
         headers: {
@@ -149,44 +164,37 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
         .then(() => {
           setDisplayUpvotes(displayUpvotes + 1);
           setHasUpvoted(true);
-          setHasDownvoted(false); // Ensure downvote is removed if upvote is clicked
-          fetchVoteStatus(); // Re-fetch vote status after upvoting
+          setHasDownvoted(false);
+          fetchVoteStatus();
         })
         .catch((error) => console.error('Error submitting upvote:', error));
     }
   };
 
   const handleDownvote = () => {
-    // Check if the user has already downvoted
     if (hasDownvoted) {
-      // If already downvoted, remove the downvote
       setDisplayDownvotes(displayDownvotes - 1);
       setHasDownvoted(false);
-
-      // Send a request to remove the downvote
       fetch('http://localhost:5128/Votes', {
-        method: 'POST', // Use 'POST' to handle removing the downvote on the backend
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           postId: post.id,
-          voteType: 'Downvote', // Indicate you're removing the downvote
+          voteType: 'Downvote',
         }),
       })
         .then(() => {
-          fetchVoteStatus(); // Re-fetch vote status after removing the vote
+          fetchVoteStatus();
         })
         .catch((error) => console.error('Error removing downvote:', error));
     } else {
-      // Check if the user had upvoted, and if so, cancel the upvote
       if (hasUpvoted) {
         setDisplayUpvotes(displayUpvotes - 1);
         setHasUpvoted(false);
       }
-
-      // If not already downvoted, proceed with adding a downvote
       fetch('http://localhost:5128/Votes', {
         method: 'POST',
         headers: {
@@ -201,8 +209,8 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
         .then(() => {
           setDisplayDownvotes(displayDownvotes + 1);
           setHasDownvoted(true);
-          setHasUpvoted(false); // Ensure upvote is removed if downvote is clicked
-          fetchVoteStatus(); // Re-fetch vote status after downvoting
+          setHasUpvoted(false);
+          fetchVoteStatus();
         })
         .catch((error) => console.error('Error submitting downvote:', error));
     }
@@ -233,7 +241,6 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
       .catch((error) => console.error('Error fetching vote status:', error));
   };
 
-  // Function to render images based on their count
   const renderImages = () => {
     if (images.length === 0) {
       return (
@@ -381,11 +388,14 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
           </Box>
         </CardContent>
         <Box sx={{ display: 'flex', alignItems: 'center', padding: 1 }}>
-          <img
-            src={post.author.avatar}
-            alt="Author Avatar"
-            style={{ width: 30, height: 30, borderRadius: '50%' }}
-          />
+          {/* Use Avatar component to display profile picture or initials */}
+          <Avatar
+            src={profilePicture}
+            alt={post.author.userName}
+            sx={{ width: 30, height: 30 }}
+          >
+            {!profilePicture && post.author.userName.charAt(0).toUpperCase()}
+          </Avatar>
           <Typography variant="body2" sx={{ marginLeft: 1 }}>
             {post.author.userName}
           </Typography>

@@ -109,7 +109,53 @@ const CreatePost: React.FC = () => {
     }
 
     try {
-      // Post creation logic here (omitted for brevity)
+      // Step 1: Create the post
+      const createPostResponse = await fetch('http://localhost:5128/Posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          title,
+          description,
+          tags,
+          categoryName: categories.find((cat) => cat.id === category)?.name, // Send category name instead of id
+        }),
+      });
+
+      if (!createPostResponse.ok) {
+        const error = await createPostResponse.json();
+        throw new Error(error.message || 'Failed to create post.');
+      }
+
+      const createdPost = await createPostResponse.json();
+      const postId = createdPost.id;
+
+      // Step 2: Upload images if any
+      if (images.length > 0) {
+        const formData = new FormData();
+        images.forEach((image) => formData.append('imageFiles', image));
+
+        const imageUploadResponse = await fetch(
+          `http://localhost:5128/Posts/${postId}/images`,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('token')}`,
+            },
+            body: formData,
+          }
+        );
+
+        if (imageUploadResponse.ok) {
+          const uploadedUrls = await imageUploadResponse.text();
+          console.log('Uploaded images:', uploadedUrls);
+        } else {
+          const error = await imageUploadResponse.text();
+          throw new Error(error.message || 'Failed to upload images.');
+        }
+      }
       alert('Post created successfully!');
       handleClose();
       window.location.reload();
