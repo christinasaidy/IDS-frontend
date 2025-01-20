@@ -57,6 +57,7 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
+        accept: '*/*',
       },
     })
       .then((response) => response.json())
@@ -87,6 +88,134 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
       })
       .catch((error) => console.error('Error fetching vote status:', error));
   }, [post.id, token, userName]);
+
+
+  const handleUpvote = () => {
+    // Check if the user has already upvoted
+    if (hasUpvoted) {
+      // If already upvoted, remove the upvote
+      setDisplayUpvotes(displayUpvotes - 1);
+      setHasUpvoted(false);
+      // Send a request to remove the upvote
+      fetch('http://localhost:5128/Votes', {
+        method: 'Post',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          postId: post.id,
+          voteType: 'Upvote', // Indicate you're removing the upvote
+        }),
+      })
+        .then(() => {
+          fetchVoteStatus(); // Re-fetch vote status after removing the vote
+        })
+        .catch((error) => console.error('Error removing upvote:', error));
+    } else {
+      // Check if the user had downvoted, and if so, cancel the downvote
+      if (hasDownvoted) {
+        setDisplayDownvotes(displayDownvotes - 1);
+        setHasDownvoted(false);
+      }
+      // If not already upvoted, proceed with adding an upvote
+      fetch('http://localhost:5128/Votes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          postId: post.id,
+          voteType: 'Upvote',
+        }),
+      })
+        .then(() => {
+          setDisplayUpvotes(displayUpvotes + 1);
+          setHasUpvoted(true);
+          setHasDownvoted(false); // Ensure downvote is removed if upvote is clicked
+          fetchVoteStatus(); // Re-fetch vote status after upvoting
+        })
+        .catch((error) => console.error('Error submitting upvote:', error));
+    }
+  };
+
+  const handleDownvote = () => {
+    // Check if the user has already downvoted
+    if (hasDownvoted) {
+      // If already downvoted, remove the downvote
+      setDisplayDownvotes(displayDownvotes - 1);
+      setHasDownvoted(false);
+
+      // Send a request to remove the downvote
+      fetch('http://localhost:5128/Votes', {
+        method: 'POST', // Use 'POST' to handle removing the downvote on the backend
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          postId: post.id,
+          voteType: 'Downvote', // Indicate you're removing the downvote
+        }),
+      })
+        .then(() => {
+          fetchVoteStatus(); // Re-fetch vote status after removing the vote
+        })
+        .catch((error) => console.error('Error removing downvote:', error));
+    } else {
+      // Check if the user had upvoted, and if so, cancel the upvote
+      if (hasUpvoted) {
+        setDisplayUpvotes(displayUpvotes - 1);
+        setHasUpvoted(false);
+      }
+
+      // If not already downvoted, proceed with adding a downvote
+      fetch('http://localhost:5128/Votes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          postId: post.id,
+          voteType: 'Downvote',
+        }),
+      })
+        .then(() => {
+          setDisplayDownvotes(displayDownvotes + 1);
+          setHasDownvoted(true);
+          setHasUpvoted(false); // Ensure upvote is removed if downvote is clicked
+          fetchVoteStatus(); // Re-fetch vote status after downvoting
+        })
+        .catch((error) => console.error('Error submitting downvote:', error));
+    }
+  };
+
+  const fetchVoteStatus = () => {
+    fetch(`http://localhost:5128/Votes/Post/${post.id}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        const userVotes = data.reduce(
+          (votes: { upvoted: boolean; downvoted: boolean }, vote: { voteType: string; userName: string }) => {
+            if (vote.userName === userName) {
+              if (vote.voteType === 'Upvote') votes.upvoted = true;
+              if (vote.voteType === 'Downvote') votes.downvoted = true;
+            }
+            return votes;
+          },
+          { upvoted: false, downvoted: false }
+        );
+        setHasUpvoted(userVotes.upvoted);
+        setHasDownvoted(userVotes.downvoted);
+      })
+      .catch((error) => console.error('Error fetching vote status:', error));
+  };
 
   // Function to render images based on their count
   const renderImages = () => {
@@ -198,7 +327,7 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <IconButton
                   sx={{ color: hasUpvoted ? 'green' : 'gray' }}
-                  onClick={() => setDisplayUpvotes((prev) => (hasUpvoted ? prev - 1 : prev + 1))}
+                  onClick={handleUpvote}
                 >
                   <ThumbUp />
                 </IconButton>
@@ -207,7 +336,7 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <IconButton
                   sx={{ color: hasDownvoted ? 'red' : 'gray' }}
-                  onClick={() => setDisplayDownvotes((prev) => (hasDownvoted ? prev - 1 : prev + 1))}
+                  onClick={handleDownvote}
                 >
                   <ThumbDown />
                 </IconButton>
