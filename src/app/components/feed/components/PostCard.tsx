@@ -65,30 +65,46 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
       .catch((error) => console.error('Error fetching username:', error));
 
     // Fetch vote status
-    fetch(`http://localhost:5128/Votes/Post/${post.id}`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        const userVotes = data.reduce(
-          (votes: { upvoted: boolean; downvoted: boolean }, vote: { voteType: string; userName: string }) => {
-            if (vote.userName === userName) {
-              if (vote.voteType === 'Upvote') votes.upvoted = true;
-              if (vote.voteType === 'Downvote') votes.downvoted = true;
-            }
-            return votes;
+      fetch(`http://localhost:5128/Votes/Post/${post.id}`, {
+          method: 'GET',
+          headers: {
+              Authorization: `Bearer ${token}`,
           },
-          { upvoted: false, downvoted: false }
-        );
-        setHasUpvoted(userVotes.upvoted);
-        setHasDownvoted(userVotes.downvoted);
       })
-      .catch((error) => console.error('Error fetching vote status:', error));
+      .then(async (response) => {
+        if (!response.ok) {
+            let errorMessage = "An unknown error occurred";
+            try {
+                // Attempt to parse the response as JSON
+                const error = await response.json();
+                errorMessage = error.message || JSON.stringify(error);
+            } catch (error) {
+                // If JSON parsing fails, fall back to plain text
+                errorMessage = await response.text();
+            }
+            console.warn('No votes found or another error occurred:', errorMessage);
+            return [];
+        }
+        return response.json();
+    })
+    
+          .then((data) => {
+              const userVotes = data.reduce(
+                  (votes: { upvoted: boolean; downvoted: boolean }, vote: { voteType: string; userName: string }) => {
+                      if (vote.userName === userName) {
+                          if (vote.voteType === 'Upvote') votes.upvoted = true;
+                          if (vote.voteType === 'Downvote') votes.downvoted = true;
+                      }
+                      return votes;
+                  },
+                  { upvoted: false, downvoted: false }
+              );
+              setHasUpvoted(userVotes.upvoted);
+              setHasDownvoted(userVotes.downvoted);
+          })
+          .catch((error) => console.error('Error processing vote data:', error));
   }, [post.id, token, userName]);
-
+  
 
   const handleUpvote = () => {
     // Check if the user has already upvoted
