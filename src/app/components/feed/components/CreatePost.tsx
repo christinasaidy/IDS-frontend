@@ -1,19 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import TextField from '@mui/material/TextField';
 import DialogActions from '@mui/material/DialogActions';
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
+import FormControl from '@mui/material/FormControl';
+
+interface Category {
+  id: number;
+  name: string;
+}
 
 const CreatePost: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState('');
-  const [category, setCategory] = useState('');
-  const [images, setImages] = useState<File[]>([]);
-  const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
+  const [category, setCategory] = useState<number | ''>(''); 
+  const [images, setImages] = useState<File[]>([]); 
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  // Fetch categories on component mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch('http://localhost:5128/Categories');
+        if (!response.ok) {
+          throw new Error('Failed to fetch categories');
+        }
+        const data = await response.json();
+        setCategories(data);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const handleClickOpen = () => setOpen(true);
   const handleClose = () => {
@@ -27,7 +53,6 @@ const CreatePost: React.FC = () => {
     setTags('');
     setCategory('');
     setImages([]);
-    setUploadedImageUrls([]);
   };
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,55 +68,49 @@ const CreatePost: React.FC = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`, // Adjust token storage as needed
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
         body: JSON.stringify({
           title,
           description,
           tags,
-          categoryName: category,
+          categoryName: categories.find((cat) => cat.id === category)?.name, // Send category name instead of id
         }),
       });
-  
+
       if (!createPostResponse.ok) {
         const error = await createPostResponse.json();
         throw new Error(error.message || 'Failed to create post.');
       }
-  
+
       const createdPost = await createPostResponse.json();
       const postId = createdPost.id;
-  
+
       // Step 2: Upload images if any
       if (images.length > 0) {
         const formData = new FormData();
         images.forEach((image) => formData.append('imageFiles', image));
-  
+
         const imageUploadResponse = await fetch(
           `http://localhost:5128/Posts/${postId}/images`,
           {
             method: 'POST',
             headers: {
-              Authorization: `Bearer ${localStorage.getItem('token')}`, // Adjust token storage as needed
+              Authorization: `Bearer ${localStorage.getItem('token')}`,
             },
             body: formData,
           }
         );
-  
-        // Handle the response for image upload
+
         if (imageUploadResponse.ok) {
-          const contentType = imageUploadResponse.headers.get('Content-Type');
-          if (contentType && contentType.includes('application/json')) {
-            const uploadedUrls = await imageUploadResponse.json(); // Parse JSON if available
-            setUploadedImageUrls(uploadedUrls);
-          } else {
-            console.warn('No JSON response for image upload. Response might be empty.');
-          }
+          const uploadedUrls = await imageUploadResponse.json();
+          console.log('Uploaded images:', uploadedUrls);
         } else {
           const error = await imageUploadResponse.json();
           throw new Error(error.message || 'Failed to upload images.');
         }
       }
-  
+
       alert('Post created successfully!');
       handleClose();
     } catch (error: any) {
@@ -99,7 +118,6 @@ const CreatePost: React.FC = () => {
       alert(error.message || 'An error occurred while creating the post.');
     }
   };
-  
 
   return (
     <>
@@ -124,62 +142,68 @@ const CreatePost: React.FC = () => {
       </Button>
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
         <DialogTitle>Create a New Post</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Title"
-            type="text"
-            fullWidth
-            variant="outlined"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-          <TextField
-            margin="dense"
-            label="Description"
-            type="text"
-            fullWidth
-            variant="outlined"
-            multiline
-            rows={4}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-          <TextField
-            margin="dense"
-            label="Tags"
-            type="text"
-            fullWidth
-            variant="outlined"
-            helperText="Separate tags with commas"
-            value={tags}
-            onChange={(e) => setTags(e.target.value)}
-            value={tags}
-            onChange={(e) => setTags(e.target.value)}
-          />
-          <TextField
-            margin="dense"
-            label="Category"
-            type="text"
-            fullWidth
-            variant="outlined"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-          />
-          <TextField
-            margin="dense"
-            label="Upload Images"
-            type="file"
-            fullWidth
-            variant="outlined"
-            inputProps={{ multiple: true, accept: 'image/*' }}
-            onChange={handleImageChange}
-          />
+        <DialogContent sx={{ maxHeight: '400px', overflow: 'auto' }}>
+          <div style={{ marginBottom: '1rem' }}>
+            <h3>Title</h3>
+            <TextField
+              fullWidth
+              variant="outlined"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </div>
+          <div style={{ marginBottom: '1rem' }}>
+            <h3>Description</h3>
+            <TextField
+              fullWidth
+              variant="outlined"
+              multiline
+              rows={6} // Increased height for the description input
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              InputProps={{
+                style: {
+                  minHeight: '150px', // Make sure the description field has a minimum height
+                },
+              }}
+            />
+          </div>
+          <div style={{ marginBottom: '1rem' }}>
+            <h3>Tags</h3>
+            <TextField
+              fullWidth
+              variant="outlined"
+              helperText="Separate tags with commas"
+              value={tags}
+              onChange={(e) => setTags(e.target.value)}
+            />
+          </div>
+          <div style={{ marginBottom: '1rem' }}>
+            <h3>Category</h3>
+            <FormControl fullWidth>
+              <Select
+                value={category}
+                onChange={(e) => setCategory(e.target.value as number)}
+                fullWidth
+              >
+                {categories.map((cat) => (
+                  <MenuItem key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </div>
+          <div style={{ marginBottom: '1rem' }}>
+            <h3>Upload Images</h3>
+            <TextField
+              fullWidth
+              variant="outlined"
+              type="file"
+              inputProps={{ multiple: true, accept: 'image/*' }}
+              onChange={handleImageChange}
+            />
+          </div>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
