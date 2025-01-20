@@ -7,6 +7,7 @@ import Pagination from '@mui/material/Pagination';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 import NavigateNextRoundedIcon from '@mui/icons-material/NavigateNextRounded';
+import Link from 'next/link';
 
 const StyledTypography = styled(Typography)({
   display: '-webkit-box',
@@ -89,7 +90,7 @@ function Author({ authors, createdAt }) {
 }
 
 export default function Latest() {
-  const [articles, setArticles] = React.useState([]);
+  const [latestPosts, setlatestPosts] = React.useState([]);
   const [currentPage, setCurrentPage] = React.useState(1);
   const [totalPosts, setTotalPosts] = React.useState(0);
   const postsPerPage = 4;
@@ -105,6 +106,7 @@ export default function Latest() {
         title: item.title,
         description: item.description,
         createdAt: item.createdAt,
+        id: item.id,
         authors: [
           {
             name: item.author.userName,
@@ -112,7 +114,8 @@ export default function Latest() {
           },
         ],
       }));
-      setArticles(updatedData);
+      setlatestPosts(updatedData);
+      console.log(latestPosts);
     };
 
     const fetchTotalPosts = async () => {
@@ -137,7 +140,7 @@ export default function Latest() {
         Latest
       </Typography>
       <Grid container spacing={8} columns={12} sx={{ my: 4 }}>
-        {articles.map((article, index) => (
+        {latestPosts.map((latestPost, index) => (
           <Grid key={index} size={{ xs: 12, sm: 6 }}>
             <Box
               sx={{
@@ -149,23 +152,27 @@ export default function Latest() {
               }}
             >
               <Typography gutterBottom variant="caption" component="div">
-                {article.category}
+                {latestPost.category}
               </Typography>
+              <Link href={`/pages/${latestPost.id}/posts`} passHref> 
+
               <TitleTypography
                 gutterBottom
                 variant="h6"
                 tabIndex={0}
               >
-                {article.title}
+                {latestPost.title}
+
                 <NavigateNextRoundedIcon
                   className="arrow"
-                  sx={{ fontSize: '1rem' }}
+                  sx={{ fontSize: '2rem' }}
                 />
               </TitleTypography>
+              </Link>
               <StyledTypography variant="body2" color="text.secondary" gutterBottom>
-                {article.description}
+                {latestPost.description}
               </StyledTypography>
-              <Author authors={article.authors} createdAt={article.createdAt} />
+              <Author authors={latestPost.authors} createdAt={latestPost.createdAt} />
             </Box>
           </Grid>
         ))}
