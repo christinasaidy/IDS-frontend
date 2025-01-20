@@ -314,7 +314,6 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
         return null;
     }
   };
-
   return (
     <Grid item xs={12} sm={6} md={4}>
       <Card variant="outlined" sx={{ borderRadius: 2, boxShadow: 3 }}>
@@ -332,10 +331,27 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
           <Typography gutterBottom variant="caption" color="primary">
             {post.category.name}
           </Typography>
-          <Typography gutterBottom variant="h6">
+          <Typography gutterBottom variant="h6"             sx={{
+              display: '-webkit-box',
+              WebkitBoxOrient: 'vertical',
+              WebkitLineClamp: 1, // Limit the number of lines
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}>
             {post.title}
           </Typography>
-          <Typography variant="body2" color="text.secondary" gutterBottom>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            gutterBottom
+            sx={{
+              display: '-webkit-box',
+              WebkitBoxOrient: 'vertical',
+              WebkitLineClamp: 1, // Limit the number of lines
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
             {post.description}
           </Typography>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -359,7 +375,7 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
                 <Typography sx={{ fontWeight: 600 }}>{displayDownvotes}</Typography>
               </Box>
             </Box>
-            <Button startIcon={<Comment />} variant="outlined" color='inherit'>
+            <Button startIcon={<Comment />} variant="outlined" color="inherit">
               Comment
             </Button>
           </Box>
@@ -378,5 +394,4 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
     </Grid>
   );
 };
-
 export default PostCard;
