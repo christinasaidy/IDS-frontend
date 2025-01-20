@@ -246,7 +246,7 @@ const UserProfile = () => {
         <Box sx={{ position: "relative", display: "inline-block" }}>
           <Avatar
             alt={username}
-            src={profilePicture || "https://images.unsplash.com/photo-1494790108377-be9c29b29330"}
+            src={profilePicture || "https://www.shutterstock.com/image-vector/user-profile-icon-vector-avatar-600nw-2247726673.jpg"}
             sx={{ width: 120, height: 120, margin: "0 auto 16px", border: "4px solid #fff" }}
           />
           <IconButton

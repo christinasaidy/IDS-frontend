@@ -103,10 +103,10 @@ const CreatePost: React.FC = () => {
         );
 
         if (imageUploadResponse.ok) {
-          const uploadedUrls = await imageUploadResponse.json();
+          const uploadedUrls = await imageUploadResponse.text();
           console.log('Uploaded images:', uploadedUrls);
         } else {
-          const error = await imageUploadResponse.json();
+          const error = await imageUploadResponse.text();
           throw new Error(error.message || 'Failed to upload images.');
         }
       }
