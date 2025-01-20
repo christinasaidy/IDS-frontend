@@ -1,128 +1,45 @@
 import * as React from 'react';
-import Avatar from '@mui/material/Avatar';
-import AvatarGroup from '@mui/material/AvatarGroup';
-import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import CardMedia from '@mui/material/CardMedia';
-import Chip from '@mui/material/Chip';
-import Grid from '@mui/material/Grid2';
-import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
-import FormControl from '@mui/material/FormControl';
-import InputAdornment from '@mui/material/InputAdornment';
-import OutlinedInput from '@mui/material/OutlinedInput';
-import { styled } from '@mui/material/styles';
+import {
+  Box,
+  Grid,
+  Typography,
+  Chip,
+  IconButton,
+  FormControl,
+  OutlinedInput,
+  InputAdornment,
+} from '@mui/material';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import RssFeedRoundedIcon from '@mui/icons-material/RssFeedRounded';
 import { useEffect, useState } from 'react';
-import FeaturedPosts from './Featured'
+import FeaturedPosts from './Featured';
+import Latest from '../components/Latest';
+import PostCard from './PostCard'; // Import the PostCard component
 
-
-const SyledCard = styled(Card)({
-  display: 'flex',
-  flexDirection: 'column',
-  padding: 0,
-  height: '100%',
-  backgroundColor: '#fff', // Fixed light background color
-  '&:hover': {
-    backgroundColor: 'transparent',
-    cursor: 'pointer',
-  },
-  '&:focus-visible': {
-    outline: '3px solid',
-    outlineColor: 'hsla(210, 98%, 48%, 0.5)',
-    outlineOffset: '2px',
-  },
-});
-
-const SyledCardContent = styled(CardContent)({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 4,
-  padding: 16,
-  flexGrow: 1,
-  '&:last-child': {
-    paddingBottom: 16,
-  },
-});
-
-const StyledTypography = styled(Typography)({
-  display: '-webkit-box',
-  WebkitBoxOrient: 'vertical',
-  WebkitLineClamp: 2,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-});
-
-function Author({ authors }: { authors: { name: string; avatar: string }[] }) {
-  return (
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'row',
-        gap: 2,
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '16px',
-      }}
-    >
-
-      <Box
-        sx={{ display: 'flex', flexDirection: 'row', gap: 1, alignItems: 'center' }}
-      >
-        <AvatarGroup max={3}>
-          {authors.map((author, index) => (
-            <Avatar
-              key={index}
-              alt={author.name}
-              src={author.avatar}
-              sx={{ width: 24, height: 24 }}
-            />
-          ))}
-        </AvatarGroup>
-        <Typography variant="caption">
-          {authors.map((author) => author.name).join(', ')}
-        </Typography>
-      </Box>
-      <Typography variant="caption">July 14, 2021</Typography>
-    </Box>
-  );
+interface Author {
+  id: number;
+  userName: string;
+  avatar: string;
 }
 
-export function Search() {
-  return (
-    <FormControl sx={{ width: { xs: '100%', md: '25ch' } }} variant="outlined">
-      <OutlinedInput
-        size="small"
-        id="search"
-        placeholder="Search…"
-        sx={{ flexGrow: 1 }}
-        startAdornment={
-          <InputAdornment position="start" sx={{ color: 'text.primary' }}>
-            <SearchRoundedIcon fontSize="small" />
-          </InputAdornment>
-        }
-        inputProps={{
-          'aria-label': 'search',
-        }}
-      />
-    </FormControl>
-  );
+interface Post {
+  id: number;
+  title: string;
+  description: string;
+  tags: string;
+  upvotes: number;
+  downvotes: number;
+  author: Author;
+  category: { id: number; name: string };
+  slug: string;
 }
 
 export default function MainContent() {
-  const [focusedCardIndex, setFocusedCardIndex] = React.useState<number | null>(null);
-
-  const handleFocus = (index: number) => {
-    setFocusedCardIndex(index);
-  };
-
-  const handleBlur = () => {
-    setFocusedCardIndex(null);
-  };
-
   const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+  const [posts, setPosts] = useState<Post[]>([]);
+
+  // Fetch categories on component mount
   useEffect(() => {
     fetch('http://localhost:5128/Categories')
       .then((response) => response.json())
@@ -130,15 +47,30 @@ export default function MainContent() {
       .catch((error) => console.error('Error fetching categories:', error));
   }, []);
 
-  const handleClick = () => {
-    console.info('You clicked the filter chip.');
+  // Fetch posts based on the selected category
+  useEffect(() => {
+    if (selectedCategoryId) {
+      fetch(`http://localhost:5128/Posts/category/${selectedCategoryId}`)
+        .then((response) => response.json())
+        .then((data) => {
+          const formattedPosts = Array.isArray(data) ? data : [data];
+          setPosts(formattedPosts);
+        })
+        .catch((error) => console.error('Error fetching posts:', error));
+    } else {
+      setPosts([]); // Clear posts when "All categories" is selected
+    }
+  }, [selectedCategoryId]);
+
+  const handleCategoryClick = (categoryId: number | null) => {
+    setSelectedCategoryId(categoryId);
   };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       <div>
         <Typography variant="h1" gutterBottom>
-        404: Social Life Not Found
+          404: Social Life Not Found
         </Typography>
         <Typography>Stay in the loop with the latest tech news</Typography>
       </div>
@@ -175,15 +107,25 @@ export default function MainContent() {
             overflow: 'auto',
           }}
         >
-          <Chip onClick={handleClick} size="medium" label="All categories" />
+          <Chip
+            onClick={() => handleCategoryClick(null)}
+            size="medium"
+            label="All categories"
+            sx={{
+              backgroundColor: selectedCategoryId === null ? 'grey.300' : 'transparent',
+              color: selectedCategoryId === null ? 'black' : 'inherit',
+              border: 'none',
+            }}
+          />
           {categories.map((category) => (
             <Chip
               key={category.id}
-              onClick={() => handleClick()}
+              onClick={() => handleCategoryClick(category.id)}
               size="medium"
               label={category.name}
               sx={{
-                backgroundColor: 'transparent',
+                backgroundColor: selectedCategoryId === category.id ? 'grey.300' : 'transparent',
+                color: selectedCategoryId === category.id ? 'black' : 'inherit',
                 border: 'none',
               }}
             />
@@ -204,10 +146,45 @@ export default function MainContent() {
           </IconButton>
         </Box>
       </Box>
-      <Typography variant="h2" gutterBottom>
-        Featured
-      </Typography>
-        <FeaturedPosts/>
+      {selectedCategoryId ? (
+        <Box sx={{ padding: 3 }}>
+          <Grid container spacing={3}>
+            {posts.map((post) => (
+              <PostCard key={post.id} post={post} />
+            ))}
+          </Grid>
+        </Box>
+      ) : (
+        <>
+          <Typography variant="h2" gutterBottom>
+            Featured
+          </Typography>
+          <FeaturedPosts />
+          <Latest />
+        </>
+      )}
     </Box>
+  );
+}
+
+// Search component (unchanged)
+export function Search() {
+  return (
+    <FormControl sx={{ width: { xs: '100%', md: '25ch' } }} variant="outlined">
+      <OutlinedInput
+        size="small"
+        id="search"
+        placeholder="Search…"
+        sx={{ flexGrow: 1 }}
+        startAdornment={
+          <InputAdornment position="start" sx={{ color: 'text.primary' }}>
+            <SearchRoundedIcon fontSize="small" />
+          </InputAdornment>
+        }
+        inputProps={{
+          'aria-label': 'search',
+        }}
+      />
+    </FormControl>
   );
 }
