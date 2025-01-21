@@ -12,6 +12,7 @@ import {
 import { ThumbUp, ThumbDown, Comment } from '@mui/icons-material';
 import Link from 'next/link';
 import CommentsModal from './CommentsModal'; // Import the CommentsModal component
+import { jwtDecode } from 'jwt-decode';
 
 interface Author {
   id: number;
@@ -41,8 +42,29 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
   const [profilePicture, setProfilePicture] = useState<string>('');
   const [commentModalOpen, setCommentModalOpen] = useState(false); // State for modal open/close
   const [postPosition, setPostPosition] = useState({ top: 0, left: 0, width: 0, height: 0 }); // State for post card position
+  const [signedInUserId, setSignedInUserId] = useState<number | null>(null); // State for signed-in user ID
 
   const token = localStorage.getItem('token');
+
+  // Fetch the signed-in user's ID from the token
+  useEffect(() => {
+    const getUserIdFromToken = (): number | null => {
+      if (token) {
+        try {
+          const decodedToken: { UserId: string } = jwtDecode(token);
+          console.log('Decoded Token:', decodedToken); // Debugging line
+          return parseInt(decodedToken.UserId, 10); // Convert UserId to a number
+        } catch (error) {
+          console.error('Error decoding token:', error);
+        }
+      }
+      return null;
+    };
+
+    const userId = getUserIdFromToken();
+    setSignedInUserId(userId);
+    console.log('Signed-in User ID:', userId); // Debugging line
+  }, [token]);
 
   // Fetch data (unchanged)
   useEffect(() => {
@@ -394,15 +416,15 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
 
       {/* Comments Modal */}
       {commentModalOpen && (
-  <CommentsModal
-    open={commentModalOpen}
-    onClose={() => setCommentModalOpen(false)}
-    userId={post.author.id}
-    postId={post.id}
-    token={token}
-    postPosition={postPosition} // Pass the post card's position for dynamic placement
-  />
-)}
+        <CommentsModal
+          open={commentModalOpen}
+          onClose={() => setCommentModalOpen(false)}
+          postId={post.id}
+          token={token}
+          userId={signedInUserId} // Pass the signed-in user's ID
+          postPosition={postPosition}
+        />
+      )}
     </Grid>
   );
 };
