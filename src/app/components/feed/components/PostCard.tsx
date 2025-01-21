@@ -1,7 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Grid, Typography, Card, CardContent, Button, IconButton, Avatar } from '@mui/material';
+import {
+  Box,
+  Grid,
+  Typography,
+  Card,
+  CardContent,
+  Button,
+  IconButton,
+  Avatar,
+} from '@mui/material';
 import { ThumbUp, ThumbDown, Comment } from '@mui/icons-material';
 import Link from 'next/link';
+import CommentsModal from './CommentsModal'; // Import the CommentsModal component
 
 interface Author {
   id: number;
@@ -28,11 +38,13 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
   const [hasDownvoted, setHasDownvoted] = useState(false);
   const [userName, setUserName] = useState('');
   const [images, setImages] = useState<string[]>([]);
-  const [profilePicture, setProfilePicture] = useState<string>(''); // State for profile picture
+  const [profilePicture, setProfilePicture] = useState<string>('');
+  const [commentModalOpen, setCommentModalOpen] = useState(false); // State for modal open/close
+  const [postPosition, setPostPosition] = useState({ top: 0, left: 0, width: 0, height: 0 }); // State for post card position
 
   const token = localStorage.getItem('token');
 
-
+  // Fetch data (unchanged)
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -112,6 +124,7 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
     fetchData();
   }, [post.id, token, userName, post.author.id]);
 
+  // Handle upvote (unchanged)
   const handleUpvote = () => {
     if (hasUpvoted) {
       setDisplayUpvotes(displayUpvotes - 1);
@@ -157,6 +170,7 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
     }
   };
 
+  // Handle downvote (unchanged)
   const handleDownvote = () => {
     if (hasDownvoted) {
       setDisplayDownvotes(displayDownvotes - 1);
@@ -202,6 +216,7 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
     }
   };
 
+  // Fetch vote status (unchanged)
   const fetchVoteStatus = () => {
     fetch(`http://localhost:5128/Votes/Post/${post.id}`, {
       method: 'GET',
@@ -227,6 +242,7 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
       .catch((error) => console.error('Error fetching vote status:', error));
   };
 
+  // Render images (unchanged)
   const renderImages = () => {
     if (images.length === 0) {
       return (
@@ -307,9 +323,25 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
         return null;
     }
   };
+
+  // Handle opening the comments modal
+  const handleOpenCommentsModal = (event: React.MouseEvent<HTMLButtonElement>) => {
+    const postCardElement = event.currentTarget.closest('.post-card'); // Find the closest post card element
+    if (postCardElement) {
+      const rect = postCardElement.getBoundingClientRect(); // Get the post card's position
+      setPostPosition({
+        top: rect.top,
+        left: rect.left,
+        width: rect.width,
+        height: rect.height,
+      });
+    }
+    setCommentModalOpen(true); // Open the modal
+  };
+
   return (
     <Grid item xs={12} sm={6} md={4}>
-      <Card variant="outlined" sx={{ borderRadius: 2, boxShadow: 3 }}>
+      <Card variant="outlined" sx={{ borderRadius: 2, boxShadow: 3 }} className="post-card">
         <Link href={`/pages/${post.id}/posts`} passHref>
           <Box
             sx={{
@@ -324,62 +356,34 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
           <Typography gutterBottom variant="caption" color="primary">
             {post.category.name}
           </Typography>
-          <Typography gutterBottom variant="h6"             sx={{
-              display: '-webkit-box',
-              WebkitBoxOrient: 'vertical',
-              WebkitLineClamp: 1, // Limit the number of lines
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}>
+          <Typography gutterBottom variant="h6" sx={{ display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {post.title}
           </Typography>
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            gutterBottom
-            sx={{
-              display: '-webkit-box',
-              WebkitBoxOrient: 'vertical',
-              WebkitLineClamp: 1, // Limit the number of lines
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}
-          >
+          <Typography variant="body2" color="text.secondary" gutterBottom sx={{ display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {post.description}
           </Typography>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <IconButton
-                  sx={{ color: hasUpvoted ? 'green' : 'gray' }}
-                  onClick={handleUpvote}
-                >
+                <IconButton sx={{ color: hasUpvoted ? 'green' : 'gray' }} onClick={handleUpvote}>
                   <ThumbUp />
                 </IconButton>
                 <Typography sx={{ fontWeight: 600 }}>{displayUpvotes}</Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <IconButton
-                  sx={{ color: hasDownvoted ? 'red' : 'gray' }}
-                  onClick={handleDownvote}
-                >
+                <IconButton sx={{ color: hasDownvoted ? 'red' : 'gray' }} onClick={handleDownvote}>
                   <ThumbDown />
                 </IconButton>
                 <Typography sx={{ fontWeight: 600 }}>{displayDownvotes}</Typography>
               </Box>
             </Box>
-            <Button startIcon={<Comment />} variant="outlined" color="inherit">
+            <Button startIcon={<Comment />} variant="outlined" color="inherit" onClick={handleOpenCommentsModal}>
               Comment
             </Button>
           </Box>
         </CardContent>
         <Box sx={{ display: 'flex', alignItems: 'center', padding: 1 }}>
-          {/* Use Avatar component to display profile picture or initials */}
-          <Avatar
-            src={profilePicture}
-            alt={post.author.userName}
-            sx={{ width: 30, height: 30 }}
-          >
+          <Avatar src={profilePicture} alt={post.author.userName} sx={{ width: 30, height: 30 }}>
             {!profilePicture && post.author.userName.charAt(0).toUpperCase()}
           </Avatar>
           <Typography variant="body2" sx={{ marginLeft: 1 }}>
@@ -387,7 +391,20 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
           </Typography>
         </Box>
       </Card>
+
+      {/* Comments Modal */}
+      {commentModalOpen && (
+  <CommentsModal
+    open={commentModalOpen}
+    onClose={() => setCommentModalOpen(false)}
+    userId={post.author.id}
+    postId={post.id}
+    token={token}
+    postPosition={postPosition} // Pass the post card's position for dynamic placement
+  />
+)}
     </Grid>
   );
 };
+
 export default PostCard;
