@@ -57,7 +57,7 @@ export default function MainContent() {
           const formattedPosts = Array.isArray(data) ? data : [data];
           setPosts(formattedPosts);
         })
-        .catch((error) => console.error('Error fetching posts:', error));
+        .catch((error) => console.error('Error fetching posts:', error)); setPosts([]);;
     } else {
       setPosts([]); // Clear posts when "All categories" is selected
     }
@@ -175,11 +175,16 @@ export default function MainContent() {
         </Box>
       ) : selectedCategoryId ? (
         <Box sx={{ padding: 3 }}>
-          <Grid container spacing={3}>
-            {posts.map((post) => (
-              <PostCard key={post.id} post={post} />
-            ))}
-          </Grid>
+        <Grid container spacing={3}>
+          {posts.length > 0 ? (
+            posts.map((post) => <PostCard key={post.id} post={post} />)
+          ) : (
+            <Typography variant="h6" align="center" color="textSecondary" style={{ width: '100%' }}>
+              No posts exist in this category.
+            </Typography>
+          )}
+        </Grid>
+
         </Box>
       ) : (
         <>

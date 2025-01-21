@@ -32,98 +32,84 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
 
   const token = localStorage.getItem('token');
 
+
   useEffect(() => {
-    // Fetch post images
-    fetch(`http://localhost:5128/Posts/${post.id}/images`, {
-      method: 'GET',
-    })
-      .then(async (response) => {
-        if (!response.ok) {
-          const errorMessage = await response.text();
+    const fetchData = async () => {
+      try {
+        // Fetch post images
+        const imageResponse = await fetch(`http://localhost:5128/Posts/${post.id}/images`, { method: 'GET' });
+        if (!imageResponse.ok) {
+          const errorMessage = await imageResponse.text();
           console.warn(`Error fetching images: ${errorMessage}`);
-          return [];
-        }
-        return response.json();
-      })
-      .then((data) => {
-        if (Array.isArray(data)) {
-          const fullImagePaths = data.map((image) => `http://localhost:5128${image.imagePath}`);
+        } else {
+          const imageData = await imageResponse.json();
+          const fullImagePaths = imageData.map((image) => `http://localhost:5128${image.imagePath}`);
           setImages(fullImagePaths);
         }
-      })
-      .catch((error) => console.error('Error fetching images:', error));
 
-    // Fetch username
-    fetch('http://localhost:5128/Users/username', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        accept: '*/*',
-      },
-    })
-      .then((response) => response.json())
-      .then((data) => setUserName(data.username))
-      .catch((error) => console.error('Error fetching username:', error));
+        // Fetch username
+        const userResponse = await fetch('http://localhost:5128/Users/username', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            accept: '*/*',
+          },
+        });
+        const userData = await userResponse.json();
+        setUserName(userData.username);
 
-    // Fetch vote status
-    fetch(`http://localhost:5128/Votes/Post/${post.id}`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then(async (response) => {
-        if (!response.ok) {
+        // Fetch vote status
+        const voteResponse = await fetch(`http://localhost:5128/Votes/Post/${post.id}`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!voteResponse.ok) {
           let errorMessage = "An unknown error occurred";
           try {
-            const error = await response.json();
+            const error = await voteResponse.json();
             errorMessage = error.message || JSON.stringify(error);
-          } catch (error) {
-            errorMessage = await response.text();
+          } catch {
+            errorMessage = await voteResponse.text();
           }
           console.warn('No votes found or another error occurred:', errorMessage);
-          return [];
+        } else {
+          const voteData = await voteResponse.json();
+          const userVotes = voteData.reduce(
+            (votes, vote) => {
+              if (vote.userName === userName) {
+                if (vote.voteType === 'Upvote') votes.upvoted = true;
+                if (vote.voteType === 'Downvote') votes.downvoted = true;
+              }
+              return votes;
+            },
+            { upvoted: false, downvoted: false }
+          );
+          setHasUpvoted(userVotes.upvoted);
+          setHasDownvoted(userVotes.downvoted);
         }
-        return response.json();
-      })
-      .then((data) => {
-        const userVotes = data.reduce(
-          (votes: { upvoted: boolean; downvoted: boolean }, vote: { voteType: string; userName: string }) => {
-            if (vote.userName === userName) {
-              if (vote.voteType === 'Upvote') votes.upvoted = true;
-              if (vote.voteType === 'Downvote') votes.downvoted = true;
-            }
-            return votes;
-          },
-          { upvoted: false, downvoted: false }
-        );
-        setHasUpvoted(userVotes.upvoted);
-        setHasDownvoted(userVotes.downvoted);
-      })
-      .catch((error) => console.error('Error processing vote data:', error));
 
-    // Fetch profile picture
-    fetch(`http://localhost:5128/Users/profile-picture/${post.author.id}`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((response) => {
-        if (!response.ok) {
+        // Fetch profile picture
+        const profileResponse = await fetch(`http://localhost:5128/Users/profile-picture/${post.author.id}`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!profileResponse.ok) {
           throw new Error('Failed to fetch profile picture');
         }
-        return response.json();
-      })
-      .then((data) => {
-        // Construct the full URL by prepending the base URL
-        const fullProfilePictureUrl = `http://localhost:5128${data.profilePictureUrl}`;
+        const profileData = await profileResponse.json();
+        const fullProfilePictureUrl = `http://localhost:5128${profileData.profilePictureUrl}`;
         setProfilePicture(fullProfilePictureUrl);
-      })
-      .catch((error) => {
-        console.error('Error fetching profile picture:', error);
-        setProfilePicture(''); // Set to empty string if no profile picture is available
-      });
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        setProfilePicture('');
+      }
+    };
+
+    fetchData();
   }, [post.id, token, userName, post.author.id]);
 
   const handleUpvote = () => {
