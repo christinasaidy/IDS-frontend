@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useEffect, useState, ChangeEvent } from "react";
 import {
   Avatar,
@@ -17,6 +16,7 @@ import {
 } from "@mui/material";
 import { Edit, ArrowBack, MoreVert } from "@mui/icons-material";
 import PostCard from "./feed/components/PostCard";
+
 // Define interfaces for Post and Author
 interface Author {
   id: number;
@@ -35,7 +35,6 @@ interface Post {
   category: { id: number; name: string };
   img: string;
 }
-
 
 const UserProfile = () => {
   const [username, setUsername] = useState<string | null>(null);
@@ -230,7 +229,16 @@ const UserProfile = () => {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4, backgroundColor: "background.default" }}>
+    <Container
+      maxWidth="lg"
+      sx={{
+        py: 4,
+        backgroundColor: "background.default",
+        minHeight: "100vh", // Ensure the container takes up the full viewport height
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
       {/* Back Button */}
       <Box sx={{ mb: 3 }}>
         <Link href="/pages/feed">
@@ -241,12 +249,19 @@ const UserProfile = () => {
       </Box>
 
       {/* Profile Section */}
-      <Card sx={{ textAlign: "center", padding: "24px", marginBottom: "32px", boxShadow: 3 }}>
+      <Card
+        sx={{
+          textAlign: "center",
+          padding: "24px",
+          marginBottom: "32px",
+          boxShadow: 3,
+        }}
+      >
         {/* Profile Picture */}
         <Box sx={{ position: "relative", display: "inline-block" }}>
           <Avatar
             alt={username}
-            src={profilePicture || "https://www.shutterstock.com/image-vector/user-profile-icon-vector-avatar-600nw-2247726673.jpg"}
+            src={profilePicture || "https://images.unsplash.com/photo-1494790108377-be9c29b29330"}
             sx={{ width: 120, height: 120, margin: "0 auto 16px", border: "4px solid #fff" }}
           />
           <IconButton
