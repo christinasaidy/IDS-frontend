@@ -57,7 +57,7 @@ export default function MainContent() {
           const formattedPosts = Array.isArray(data) ? data : [data];
           setPosts(formattedPosts);
         })
-        .catch((error) => console.error('Error fetching posts:', error)); setPosts([]);;
+        .catch((error) => console.error('Error fetching posts:', error));
     } else {
       setPosts([]); // Clear posts when "All categories" is selected
     }
@@ -65,6 +65,7 @@ export default function MainContent() {
 
   const handleCategoryClick = (categoryId: number | null) => {
     setSelectedCategoryId(categoryId);
+    setSearchResults([]); // Clear search results when a category is selected
   };
 
   const handleSearch = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,12 +85,34 @@ export default function MainContent() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      {/* Title and Subtitle */}
       <div>
-        <Typography variant="h1" gutterBottom>
-          404: Social Life Not Found
+        <Typography
+          variant="h1"
+          gutterBottom
+          sx={{
+            fontSize: '2.5rem',
+            fontWeight: 700,
+            fontFamily: '"Montserrat", sans-serif', // Use Poppins font
+            color: 'text.primary',
+            mb: 1,
+          }}
+        >
+          Where Developers Unite
         </Typography>
-        <Typography>Stay in the loop with the latest tech news</Typography>
+        <Typography
+          sx={{
+            fontSize: '1.25rem',
+            fontWeight: 400,
+            fontFamily: '"Montserrat", sans-serif',
+            color: 'text.secondary',
+          }}
+        >
+          Stay in the loop with the latest tech news
+        </Typography>
       </div>
+
+      {/* Search Bar and RSS Feed (Mobile) */}
       <Box
         sx={{
           display: { xs: 'flex', sm: 'none' },
@@ -104,6 +127,8 @@ export default function MainContent() {
           <RssFeedRoundedIcon />
         </IconButton>
       </Box>
+
+      {/* Categories and Search Bar (Desktop) */}
       <Box
         sx={{
           display: 'flex',
@@ -121,6 +146,7 @@ export default function MainContent() {
             flexDirection: 'row',
             gap: 3,
             overflow: 'auto',
+            flex: 1, // Allow categories to take up remaining space
           }}
         >
           <Chip
@@ -152,8 +178,9 @@ export default function MainContent() {
             display: { xs: 'none', sm: 'flex' },
             flexDirection: 'row',
             gap: 1,
-            width: { xs: '100%', md: 'fit-content' },
-            overflow: 'auto',
+            width: { xs: '100%', md: '100%' }, // Make the search bar longer
+            flex: 2, // Allow search bar to take up more space
+            maxWidth: '300px', // Optional: Set a max width for the search bar
           }}
         >
           <Search onSearch={handleSearch} />
@@ -162,9 +189,20 @@ export default function MainContent() {
           </IconButton>
         </Box>
       </Box>
+
+      {/* Search Results or Posts */}
       {searchResults.length > 0 ? (
         <Box sx={{ padding: 3 }}>
-          <Typography variant="h2" gutterBottom>
+          <Typography
+            variant="h2"
+            gutterBottom
+            sx={{
+              fontSize: '2rem',
+              fontWeight: 600,
+              fontFamily: '"Poppins", sans-serif', // Use Poppins font
+              color: 'text.primary',
+            }}
+          >
             Search Results
           </Typography>
           <Grid container spacing={3}>
@@ -175,20 +213,33 @@ export default function MainContent() {
         </Box>
       ) : selectedCategoryId ? (
         <Box sx={{ padding: 3 }}>
-        <Grid container spacing={3}>
-          {posts.length > 0 ? (
-            posts.map((post) => <PostCard key={post.id} post={post} />)
-          ) : (
-            <Typography variant="h6" align="center" color="textSecondary" style={{ width: '100%' }}>
-              No posts exist in this category.
-            </Typography>
-          )}
-        </Grid>
-
+          <Grid container spacing={3}>
+            {posts.length > 0 ? (
+              posts.map((post) => <PostCard key={post.id} post={post} />)
+            ) : (
+              <Typography
+                variant="h6"
+                align="center"
+                color="textSecondary"
+                sx={{ width: '100%', fontFamily: '"Poppins", sans-serif' }} // Use Poppins font
+              >
+                No posts exist in this category.
+              </Typography>
+            )}
+          </Grid>
         </Box>
       ) : (
         <>
-          <Typography variant="h2" gutterBottom>
+          <Typography
+            variant="h2"
+            gutterBottom
+            sx={{
+              fontSize: '2rem',
+              fontWeight: 600,
+              fontFamily: '"Montserrat", sans-serif', // Use Poppins font
+              color: 'text.primary',
+            }}
+          >
             Featured
           </Typography>
           <FeaturedPosts />
@@ -203,7 +254,7 @@ export function Search({ onSearch }: { onSearch: (event: React.ChangeEvent<HTMLI
   const [searchQuery, setSearchQuery] = useState('');
 
   return (
-    <FormControl sx={{ width: { xs: '100%', md: '25ch' } }} variant="outlined">
+    <FormControl sx={{ width: '100%' }} variant="outlined">
       <OutlinedInput
         size="small"
         id="search"

@@ -16,6 +16,8 @@ import {
 } from "@mui/material";
 import { Edit, ArrowBack, MoreVert } from "@mui/icons-material";
 import PostCard from "./feed/components/PostCard";
+import ReputationPoints from "./reputationPoints"; 
+import { jwtDecode } from 'jwt-decode';
 
 // Define interfaces for Post and Author
 interface Author {
@@ -46,6 +48,29 @@ const UserProfile = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [isEditingProfilePic, setIsEditingProfilePic] = useState(false);
+ const [signedInUserId, setSignedInUserId] = useState<number | null>(null); // State for signed-in user ID
+
+  const token = localStorage.getItem('token');
+
+  // Fetch the signed-in user's ID from the token
+  useEffect(() => {
+    const getUserIdFromToken = (): number | null => {
+      if (token) {
+        try {
+          const decodedToken: { UserId: string } = jwtDecode(token);
+          console.log('Decoded Token:', decodedToken); // Debugging line
+          return parseInt(decodedToken.UserId, 10); // Convert UserId to a number
+        } catch (error) {
+          console.error('Error decoding token:', error);
+        }
+      }
+      return null;
+    };
+
+    const userId = getUserIdFromToken();
+    setSignedInUserId(userId);
+    console.log('Signed-in User ID:', userId); // Debugging line
+  }, [token]);
 
   // Fetch user data on component mount
   useEffect(() => {
@@ -333,6 +358,8 @@ const UserProfile = () => {
           </Box>
         )}
       </Card>
+
+      <ReputationPoints userId={signedInUserId} />
 
       {/* Posts Section */}
       <Typography variant="h3" gutterBottom sx={{ mb: 3, color: "black" }}>
