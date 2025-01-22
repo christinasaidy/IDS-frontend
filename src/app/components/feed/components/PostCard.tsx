@@ -52,7 +52,6 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
       if (token) {
         try {
           const decodedToken: { UserId: string } = jwtDecode(token);
-          console.log('Decoded Token:', decodedToken); // Debugging line
           return parseInt(decodedToken.UserId, 10); // Convert UserId to a number
         } catch (error) {
           console.error('Error decoding token:', error);
@@ -63,7 +62,7 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
 
     const userId = getUserIdFromToken();
     setSignedInUserId(userId);
-    console.log('Signed-in User ID:', userId); // Debugging line
+
   }, [token]);
 
   // Fetch data (unchanged)
@@ -346,6 +345,39 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
     }
   };
 
+  const handleNotification = async ( ) => {
+    try {
+      const response = await fetch('http://localhost:5128/Notifications', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          notificationType: 'Upvote',
+          message: `${post.author.userName} Upvoted your post`,
+          isRead: false,
+          postId: post.id, 
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to post notification');
+      }
+  
+      console.log('Notification posted successfully');
+    } catch (error) {
+      console.error('Error posting notification:', error);
+    }
+  };
+
+  // Handle liking and notifiying at the same time
+  const handleUpvoteAndNotify = () => {
+    handleUpvote();
+    handleNotification();
+  };
+  
+
   // Handle opening the comments modal
   const handleOpenCommentsModal = (event: React.MouseEvent<HTMLButtonElement>) => {
     const postCardElement = event.currentTarget.closest('.post-card'); // Find the closest post card element
@@ -360,6 +392,8 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
     }
     setCommentModalOpen(true); // Open the modal
   };
+
+
 
   return (
     <Grid item xs={12} sm={6} md={4}>
@@ -387,7 +421,7 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <IconButton sx={{ color: hasUpvoted ? 'green' : 'gray' }} onClick={handleUpvote}>
+                <IconButton sx={{ color: hasUpvoted ? 'green' : 'gray' }} onClick={handleUpvoteAndNotify}>
                   <ThumbUp />
                 </IconButton>
                 <Typography sx={{ fontWeight: 600 }}>{displayUpvotes}</Typography>

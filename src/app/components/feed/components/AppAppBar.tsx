@@ -98,12 +98,17 @@ export default function AppAppBar() {
                     My Profile
                   </Button>
                 </Link>
+
                 <Button variant="text" size="small" sx={{ color: 'black' }}>
                   Settings
                 </Button>
+
+                <Link href="/pages/notification" passHref>
                 <Button variant="text" size="small" sx={{ color: 'black' }}>
                   Notifications
                 </Button>
+                </Link>
+                
                 <Button
                   variant="text"
                   color="error"
@@ -161,7 +166,11 @@ export default function AppAppBar() {
                     <MenuItem>My Profile</MenuItem>
                   </Link>
                   <MenuItem>Settings</MenuItem>
+
+                  <Link href="/pages/notification" passHref>
                   <MenuItem>Notifications</MenuItem>
+                  </Link>
+
                   <MenuItem
                     sx={{ color: 'error.main' }}
                     onClick={toggleMobileConfirmDropdown} // Toggle mobile confirmation dropdown
