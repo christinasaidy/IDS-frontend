@@ -116,6 +116,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ open, onClose, postId, to
           flexDirection: 'column',
         }}
       >
+        {/* Close Button */}
         <IconButton
           aria-label="close"
           onClick={onClose}
@@ -133,41 +134,103 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ open, onClose, postId, to
           <CloseIcon fontSize="small" />
         </IconButton>
 
-        <Typography variant="h6" gutterBottom>
+        {/* Comments Title */}
+        <Typography
+          variant="h6"
+          gutterBottom
+          sx={{
+            fontSize: '1.25rem',
+            fontWeight: 600,
+            color: 'text.primary',
+            mb: 2,
+          }}
+        >
           Comments
         </Typography>
-        <Box sx={{ flex: 1, overflowY: 'auto', mb: 2 }}>
+
+        {/* Comments List */}
+        <Box
+          sx={{
+            flex: 1,
+            overflowY: 'auto',
+            mb: 2,
+          }}
+        >
           {comments.length === 0 ? (
             <Typography
               variant="body1"
               align="center"
-              sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              sx={{
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'text.secondary',
+              }}
             >
               No comments on this post.
             </Typography>
           ) : (
             comments.map((comment) => (
-              <Box key={comment.id} sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Box
+                key={comment.id}
+                sx={{
+                  mb: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 2,
+                }}
+              >
+                {/* User Avatar */}
                 <Avatar
                   src={`http://localhost:5128${comment.user.profilePictureUrl}`}
                   alt={comment.user.userName}
-                  sx={{ width: 30, height: 30 }}
+                  sx={{
+                    width: 30,
+                    height: 30,
+                    bgcolor: 'primary.main',
+                  }}
                 >
                   {!comment.user.profilePictureUrl && comment.user.userName.charAt(0).toUpperCase()}
                 </Avatar>
+
+                {/* Comment Content */}
                 <Box sx={{ flex: 1 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontWeight: 600,
+                      color: 'text.primary',
+                    }}
+                  >
                     {comment.user.userName}
                   </Typography>
-                  <Typography variant="body2">{comment.content}</Typography>
-                  <Typography variant="caption" color="text.secondary">
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: 'text.primary',
+                    }}
+                  >
+                    {comment.content}
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     {new Date(comment.createdAt).toLocaleString()}
                   </Typography>
                 </Box>
+
+                {/* Options Menu (for the logged-in user's comments) */}
                 {userId === comment.userId && (
                   <IconButton
                     aria-label="options"
                     onClick={(e) => handleMenuOpen(e, comment.id)}
+                    sx={{
+                      color: 'text.primary',
+                    }}
                   >
                     <MoreVertIcon />
                   </IconButton>
@@ -177,20 +240,32 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ open, onClose, postId, to
           )}
         </Box>
 
+        {/* Options Menu */}
         <Menu
           anchorEl={anchorEl}
           open={Boolean(anchorEl)}
           onClose={handleMenuClose}
+          sx={{
+            '& .MuiPaper-root': {
+              boxShadow: 3,
+            },
+          }}
         >
           <MenuItem
-        onClick={() => {
-    if (selectedCommentId) handleDeleteComment(selectedCommentId);
-    handleMenuClose();
-  }}  sx={{ color: 'red' }} >
+            onClick={() => {
+              if (selectedCommentId) handleDeleteComment(selectedCommentId);
+              handleMenuClose();
+            }}
+            sx={{
+              color: 'error.main',
+              fontSize: '0.875rem',
+            }}
+          >
             Delete Comment
-        </MenuItem>
+          </MenuItem>
         </Menu>
 
+        {/* Add Comment Section */}
         <Box sx={{ mt: 'auto' }}>
           <TextField
             fullWidth
@@ -198,15 +273,36 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ open, onClose, postId, to
             placeholder="Add a comment"
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
-            multiline
-            rows={3}
             sx={{
               '& .MuiOutlinedInput-root': {
-                alignItems: 'flex-start',
+                alignItems: 'center', // Center the input text vertically
+                height: '40px', // Set a fixed height for the input bar
+                color: 'text.primary',
+                '& fieldset': {
+                  borderColor: 'divider',
+                },
+                '&:hover fieldset': {
+                  borderColor: 'primary.main',
+                },
               },
             }}
           />
-          <Button variant="contained" color="primary" fullWidth sx={{ mt: 1 }} onClick={handleAddComment}>
+          <Button
+            variant="contained"
+            fullWidth
+            sx={{
+              mt: 1,
+              background: 'linear-gradient(45deg, #000000, #333333)', // Gradient black
+              color: 'common.white',
+              textTransform: 'none', // Prevent uppercase transformation
+              fontSize: '1rem', // Set font size
+              fontWeight: 500, // Set font weight
+              '&:hover': {
+                background: 'linear-gradient(45deg, #333333, #000000)', // Darker gradient on hover
+              },
+            }}
+            onClick={handleAddComment}
+          >
             Submit
           </Button>
         </Box>
