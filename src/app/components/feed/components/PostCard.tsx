@@ -245,6 +245,7 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
             message: `${userName} Upvoted your post`,
             isRead: false,
             postId: post.id,
+            receiverID: post.author.id
           }),
         });
   
@@ -364,6 +365,7 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
             message: `${userName} Downvoted your post`,
             isRead: false,
             postId: post.id,
+            receiverID: post.author.id
           }),
         });
   
