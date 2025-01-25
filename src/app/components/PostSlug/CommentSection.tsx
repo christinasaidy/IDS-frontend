@@ -246,7 +246,7 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
             variant="contained"
             sx={{
               background: "linear-gradient(45deg, #000000, #333333)",
-              color: "common.white",
+              color: "text.white",
               textTransform: "none",
               fontSize: "1rem",
               fontWeight: 500,
@@ -254,7 +254,7 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
                 background: "linear-gradient(45deg, #333333, #000000)",
               },
             }}
-            disabled={!newComment.trim()}
+            className="text-white"
           >
             Submit
           </Button>
