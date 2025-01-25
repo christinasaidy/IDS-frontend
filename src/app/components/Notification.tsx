@@ -1,5 +1,5 @@
 "use client";
-import { useRouter } from "next/navigation"; // For app router
+import { useRouter } from "next/navigation"; 
 import * as React from "react";
 import { useState, useEffect } from "react";
 import Box from "@mui/material/Box";
@@ -8,7 +8,7 @@ import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import Divider from "@mui/material/Divider";
-import { IconButton, Link, Avatar, Badge } from "@mui/material";
+import { IconButton, Link, Avatar, Badge, CircularProgress } from "@mui/material";
 import { ArrowBack, ThumbUp, ThumbDown, Comment } from "@mui/icons-material";
 
 const NotificationsPage = () => {
@@ -16,14 +16,15 @@ const NotificationsPage = () => {
     {
       id: number;
       message: string;
-      isRead: boolean; 
+      isRead: boolean;
       createdAt: string;
       postId: number;
       senderID: number;
-      notificationType: string; 
+      notificationType: string;
     }[]
   >([]);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -52,8 +53,6 @@ const NotificationsPage = () => {
           notificationType: notification.notificationType,
         }));
         setNotifications(mappedNotifications);
-        console.log("{notification.isRead}", mappedNotifications);
-
       } catch (err) {
         console.error(err);
         setError("Failed to load notifications.");
@@ -62,12 +61,14 @@ const NotificationsPage = () => {
 
     fetchNotifications();
   }, []);
-const handleNotificationClick = async (
+
+  const handleNotificationClick = async (
     event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
     notificationId: number,
     postId: number
   ) => {
-    event.preventDefault(); // Prevent the default navigation behavior
+    event.preventDefault(); 
+    setLoading(true); 
 
     try {
       // Mark notification as read
@@ -92,31 +93,33 @@ const handleNotificationClick = async (
         )
       );
 
-      // Navigate to the post page after marking as read
+      setTimeout(() => {
+        setLoading(false);
+    }, 2000);
       router.push(`/pages/${postId}/posts`);
     } catch (err) {
       console.error("Error marking notification as read:", err);
     }
-
   };
+
   const getNotificationIcon = (type: string) => {
     switch (type.toLowerCase()) {
-      case 'upvote':
+      case "upvote":
         return <ThumbUp className="text-green-500" />;
-      case 'downvote':
+      case "downvote":
         return <ThumbDown className="text-red-500" />;
-      case 'comment':
+      case "comment":
         return <Comment className="text-blue-500" />;
     }
   };
+
   return (
     <Box
-      className="max-w-2xl mx-auto p-4"
+      className="max-w-auto mx-auto p-4"
       sx={{
-        backgroundColor: 'background.paper',
-        borderRadius: '12px',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.05)',
-        mt: 8,
+        backgroundColor: "background.paper",
+        borderRadius: "12px",
+        boxShadow: "0 8px 32px rgba(0,0,0,0.05)",
       }}
     >
       {/* Back Button */}
@@ -149,23 +152,36 @@ const handleNotificationClick = async (
                 className="block no-underline"
               >
                 <ListItem
-                  className={`group transition-all duration-200 ${!notification.isRead ? 'bg-blue-50 border-l-4 border-blue-500' : 'bg-gray-50'} hover:shadow-md rounded-lg px-4 py-3`}
+                  className={`group transition-all duration-200 ${
+                    !notification.isRead
+                      ? "bg-blue-50 border-l-4 border-blue-500"
+                      : "bg-gray-50"
+                  } hover:shadow-md rounded-lg px-4 py-3`}
                 >
                   <Badge
                     color="primary"
                     variant="dot"
                     invisible={notification.isRead}
                     sx={{
-                      '& .MuiBadge-dot': {
+                      "& .MuiBadge-dot": {
                         width: 12,
                         height: 12,
-                        borderRadius: '50%',
-                      }
+                        borderRadius: "50%",
+                      },
                     }}
                   >
-                    <Avatar className={`bg-gray-100 group-hover:bg-blue-100 transition-colors mr-3 
-                      ${notification.notificationType.toLowerCase() === 'upvote' ? '!bg-green-50' : ''}
-                      ${notification.notificationType.toLowerCase() === 'downvote' ? '!bg-red-50' : ''}`}
+                    <Avatar
+                      className={`bg-gray-100 group-hover:bg-blue-100 transition-colors mr-3 
+                      ${
+                        notification.notificationType.toLowerCase() === "upvote"
+                          ? "!bg-green-50"
+                          : ""
+                      }
+                      ${
+                        notification.notificationType.toLowerCase() === "downvote"
+                          ? "!bg-red-50"
+                          : ""
+                      }`}
                     >
                       {getNotificationIcon(notification.notificationType)}
                     </Avatar>
@@ -175,22 +191,23 @@ const handleNotificationClick = async (
                     primary={
                       <Typography
                         variant="subtitle1"
-                        className={`${!notification.isRead ? 'font-semibold text-gray-900' : 'text-gray-600'} group-hover:text-blue-600 transition-colors`}
+                        className={`${
+                          !notification.isRead
+                            ? "font-semibold text-gray-900"
+                            : "text-gray-600"
+                        } group-hover:text-blue-600 transition-colors`}
                       >
                         {notification.message}
                       </Typography>
                     }
                     secondary={
-                      <Typography
-                        variant="caption"
-                        className="text-gray-400"
-                      >
-                        {new Date(notification.createdAt).toLocaleDateString('en-US', {
-                          weekday: 'short',
-                          month: 'short',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
+                      <Typography variant="caption" className="text-gray-400">
+                        {new Date(notification.createdAt).toLocaleDateString("en-US", {
+                          weekday: "short",
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
                         })}
                       </Typography>
                     }
@@ -201,6 +218,26 @@ const handleNotificationClick = async (
             </React.Fragment>
           ))}
         </List>
+      )}
+
+      {/* Loading Spinner */}
+      {loading && (
+        <Box
+          sx={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundColor: "rgba(255, 255, 255, 0.7)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 9999,
+          }}
+        >
+          <CircularProgress />
+        </Box>
       )}
     </Box>
   );

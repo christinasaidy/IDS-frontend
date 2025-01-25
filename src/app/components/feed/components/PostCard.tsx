@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import { ThumbUp, ThumbDown, Comment } from '@mui/icons-material';
 import Link from 'next/link';
-import CommentsModal from './CommentsModal'; // Import the CommentsModal component
+import CommentsModal from './CommentsModal'; 
 import { jwtDecode } from 'jwt-decode';
 
 interface Author {
@@ -145,6 +145,7 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
 
     fetchData();
   }, [post.id, token, userName, post.author.id]);
+
   const handleUpvoteAndNotification = async () => {
     try {
       if (hasUpvoted) {
@@ -573,8 +574,10 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
           onClose={() => setCommentModalOpen(false)}
           postId={post.id}
           token={token}
-          userId={signedInUserId} // Pass the signed-in user's ID
+          userId={signedInUserId} 
           postPosition={postPosition}
+          AuthorId = {post.author.id}
+          UserName= {userName}
         />
       )}
     </Grid>
