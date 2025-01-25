@@ -122,9 +122,11 @@ export default function AppAppBar() {
                   </Button>
                 </Link>
 
-                <Button variant="text" size="small" sx={{ color: 'black' }}>
-                  Settings
-                </Button>
+                <Link href="/pages/settings" passHref>
+                  <Button variant="text" size="small" sx={{ color: 'black' }}>
+                    Settings
+                  </Button>
+                </Link>
 
                 <Link href="/pages/notification" passHref>
                   <Badge badgeContent={unreadCount} color="error">
@@ -190,7 +192,10 @@ export default function AppAppBar() {
                   <Link href="/pages/userprofile" passHref>
                     <MenuItem>My Profile</MenuItem>
                   </Link>
-                  <MenuItem>Settings</MenuItem>
+
+                  <Link href="/pages/settings" passHref>
+                    <MenuItem>Settings</MenuItem>
+                  </Link>
 
                   <Link href="/pages/notification" passHref>
                     <Badge badgeContent={unreadCount} color="error">
