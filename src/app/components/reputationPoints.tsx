@@ -11,11 +11,11 @@ interface UserActivity {
   postCount: number;
   commentCount: number;
   engagementCount: number;
+  reputationPoints: number; // Add reputationPoints to the interface
 }
 
-const ReputationPoints: React.FC<{ userId: number }> = ({ userId }) => {
+const ReputationPoints: React.FC<{ userId: number | null }> = ({ userId }) => {
   const [activity, setActivity] = useState<UserActivity | null>(null);
-  const [reputation, setReputation] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,7 +38,6 @@ const ReputationPoints: React.FC<{ userId: number }> = ({ userId }) => {
 
         const activityData: UserActivity = await response.json();
         setActivity(activityData);
-        calculateReputation(activityData);
       } catch (error) {
         console.error("Error fetching user activity:", error);
         setError("Failed to fetch reputation data. Please try again later.");
@@ -49,20 +48,6 @@ const ReputationPoints: React.FC<{ userId: number }> = ({ userId }) => {
 
     fetchUserActivity();
   }, [userId]);
-
-  // Function to calculate reputation points
-  const calculateReputation = (activity: UserActivity) => {
-    const postWeight = 10; // 10 points per post
-    const commentWeight = 5; // 5 points per comment
-    const engagementWeight = 2; // 2 points per engagement
-
-    const totalReputation =
-      activity.postCount * postWeight +
-      activity.commentCount * commentWeight +
-      activity.engagementCount * engagementWeight;
-
-    setReputation(totalReputation);
-  };
 
   if (loading) {
     return (
@@ -101,7 +86,7 @@ const ReputationPoints: React.FC<{ userId: number }> = ({ userId }) => {
         Reputation Points
       </Typography>
       <Typography variant="h4" color="primary" gutterBottom>
-        {reputation}
+        {activity.reputationPoints}
       </Typography>
       <Grid container spacing={2} justifyContent="center">
         <Grid item>

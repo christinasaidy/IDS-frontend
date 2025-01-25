@@ -1,18 +1,5 @@
-import { notFound } from 'next/navigation';
-import { Typography, Box, Card, CardMedia, CardContent, Avatar } from '@mui/material';
-
-interface Post {
-  id: number;
-  title: string;
-  description: string;
-  content: string; // Full content of the post
-  tags: string;
-  upvotes: number;
-  downvotes: number;
-  author: Author;
-  category: { id: number; name: string };
-  img: string;
-}
+import SocialMediaPost from "../../../components/PostSlug/PostDetail";
+import { notFound } from "next/navigation";
 
 interface Author {
   id: number;
@@ -20,61 +7,50 @@ interface Author {
   avatar: string;
 }
 
+interface Post {
+  id: number;
+  title: string;
+  description: string;
+  tags: string;
+  upvotes: number;
+  downvotes: number;
+  createdAt: Date;
+  author: Author;
+  category: { id: number; name: string };
+}
+
 async function getPost(postId: string): Promise<Post | null> {
   try {
     const response = await fetch(`http://localhost:5128/posts/${postId}`);
-    if (!response.ok) {
-      return null; // Post not found
-    }
-    const post = await response.json();
-    return post;
+    if (!response.ok) return null;
+    return response.json();
   } catch (error) {
-    console.error('Error fetching post:', error);
+    console.error("Error fetching post:", error);
     return null;
   }
 }
 
-export default async function PostPage({ params }: { params: { slug: string } }) {
-  const { slug } = params;
-  console.log("slug", slug); // This should log the post ID (e.g., "29")
+interface PageProps {
+  params: {
+    slug: string;
+  };
+}
 
-  const post = await getPost(slug); // Use the slug (post ID) to fetch the post
+const PostPage = async ({ params }: PageProps) => {
+  const post = await getPost(params.slug);
 
   if (!post) {
-    notFound(); // Show a 404 page if the post is not found
+    notFound();
   }
 
   return (
-    <Box sx={{ maxWidth: 800, margin: 'auto', padding: 4 }}>
-      <Card variant="outlined">
-        <CardMedia
-          component="img"
-          alt={post.title}
-          image={post.img || 'https://picsum.photos/800/450?random=1'}
-          sx={{ height: 400, objectFit: 'cover' }}
-        />
-        <CardContent>
-          <Typography gutterBottom variant="h4" component="div">
-            {post.title}
-          </Typography>
-          <Typography variant="body1" color="text.secondary" gutterBottom>
-            {post.description}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {post.content} {/* Full content of the post */}
-          </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', marginTop: 2 }}>
-            <Avatar
-              src={post.author.avatar || 'https://picsum.photos/800/450?random=1'}
-              alt={post.author.userName}
-              sx={{ width: 40, height: 40 }}
-            />
-            <Typography variant="body2" color="text.secondary" sx={{ marginLeft: 1 }}>
-              By {post.author.userName}
-            </Typography>
-          </Box>
-        </CardContent>
-      </Card>
-    </Box>
+    <main>
+      <SocialMediaPost initialPost={{
+        ...post,
+        timestamp: new Date(post.timestamp), // Convert string to Date object for proper handling
+      }} />
+    </main>
   );
-}
+};
+
+export default PostPage;

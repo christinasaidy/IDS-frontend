@@ -1,14 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Box,
-  Grid,
-  Typography,
-  Card,
-  CardContent,
-  Button,
-  IconButton,
-  Avatar,
-} from '@mui/material';
+import { Box, Grid,Typography,Card,CardContent,Button,IconButton,Avatar,} from '@mui/material';
 import { ThumbUp, ThumbDown, Comment } from '@mui/icons-material';
 import Link from 'next/link';
 import CommentsModal from './CommentsModal'; // Import the CommentsModal component
@@ -364,7 +355,13 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
   return (
     <Grid item xs={12} sm={6} md={4}>
       <Card variant="outlined" sx={{ borderRadius: 2, boxShadow: 3 }} className="post-card">
-        <Link href={`/pages/${post.id}/posts`} passHref>
+      <Link
+  href={{
+    pathname: `/pages/${post.id}/posts`,
+   // Add your query parameters here
+  }}
+  passHref
+>
           <Box
             sx={{
               position: 'relative',
