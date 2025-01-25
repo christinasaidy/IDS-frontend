@@ -80,8 +80,31 @@ const AccountSettings = () => {
         console.error("Error fetching current username:", error);
       }
     };
+    const fetchCurrentEmail = async () => {
+      try {
+        const response = await fetch("http://localhost:5128/Users/email", {
+          method: "GET",
+          headers: {
+            accept: "*/*",
+            Authorization: `bearer ${token}`,
+          },
+        });
 
+        if (!response.ok) {
+          throw new Error("Failed to fetch email.");
+        }
+
+        const data = await response.json();
+        setFormData((prev) => ({
+          ...prev,
+          currentEmail: data.email,
+        }));
+      } catch (error) {
+        console.error("Error fetching current email:", error);
+      }
+    };
     fetchCurrentUsername();
+    fetchCurrentEmail();
   }, []);
 
   const [errors, setErrors] = useState({});
@@ -185,6 +208,38 @@ const AccountSettings = () => {
       } 
     } catch (error) {
       console.error("Error updating username:", error);
+    }
+  };
+
+  const handleChangeEmail = async () => {
+    const { newEmail } = formData;
+
+    if (!newEmail) {
+      setModalMessage("Please enter a new Email.");
+      setErrorModalOpen(true);
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:5128/Users/update-email", {
+        method: "PATCH",
+        headers: {
+          accept: "*/*",
+          "Content-Type": "application/json",
+          Authorization: `bearer ${token}`,
+        },
+        body: JSON.stringify(newEmail.trim()),
+      });
+      console.log("response", response);
+      if (response.ok) {
+        setModalMessage("Email updated successfully!");
+        setSuccessModalOpen(true);
+      } else if (response.status === 404) {
+        setModalMessage("Email is already taken please try another one.");
+        setErrorModalOpen(true);
+      } 
+    } catch (error) {
+      console.error("Error updating Email:", error);
     }
   };
 
@@ -368,7 +423,7 @@ const AccountSettings = () => {
           </Typography>
           <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
             <Button onClick={() => setShowEmailModal(false)}>Cancel</Button>
-            <Button variant="contained" color="primary">
+            <Button variant="contained" color="primary" onClick={handleChangeEmail}>
               Confirm
             </Button>
           </Box>
