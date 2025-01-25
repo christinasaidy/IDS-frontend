@@ -48,7 +48,7 @@ const UserProfile = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [isEditingProfilePic, setIsEditingProfilePic] = useState(false);
- const [signedInUserId, setSignedInUserId] = useState<number | null>(null); // State for signed-in user ID
+  const [signedInUserId, setSignedInUserId] = useState<number | null>(null); // State for signed-in user ID
 
   const token = localStorage.getItem('token');
 

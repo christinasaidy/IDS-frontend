@@ -13,11 +13,11 @@ import {
   InputAdornment,
   Alert,
   LinearProgress,
-  Switch,
-  FormControlLabel,
+  Link
 } from "@mui/material";
 import { styled } from "@mui/system";
 import { FaEye, FaEyeSlash, FaUser, FaEnvelope, FaLock, FaTrash, FaMoon, FaSun } from "react-icons/fa";
+import { ArrowBack } from "@mui/icons-material";
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(4),
@@ -41,52 +41,49 @@ const ModalContent = styled(Paper)(({ theme }) => ({
 }));
 
 const AccountSettings = () => {
+  const token = localStorage.getItem('token');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [formData, setFormData] = useState({
+    currentUsername: "error fetching username", // default username in case user is not signed in
+    newUsername: "",
+    currentEmail: "error fetching email", // default email in case user is not signed in
+    newEmail: "",
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+    deleteConfirmPassword: "",
+  });
 
-    const token = localStorage.getItem('token'); 
-    const [showPassword, setShowPassword] = useState(false);
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [showEmailModal, setShowEmailModal] = useState(false);
-    const [formData, setFormData] = useState({
-      currentUsername: "error fetching username", //default username in case user is not signed in
-      newUsername: "",
-      currentEmail: "error fetching email", //default email in case user is not signed in
-      newEmail: "",
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-      deleteConfirmPassword: "",
-    });
+  useEffect(() => {
+    const fetchCurrentUsername = async () => {
+      try {
+        const response = await fetch("http://localhost:5128/Users/username", {
+          method: "GET",
+          headers: {
+            accept: "*/*",
+            Authorization: `bearer ${token}`,
+          },
+        });
 
-    useEffect(() => {
-        const fetchCurrentUsername = async () => {
-          try {
-            const response = await fetch("http://localhost:5128/Users/username", {
-              method: "GET",
-              headers: {
-                accept: "*/*",
-                Authorization: `bearer ${token}`,
-              },
-            });
-      
-            if (!response.ok) {
-              throw new Error("Failed to fetch username.");
-            }
-      
-            const data = await response.json();
-      
-            setFormData((prev) => ({
-              ...prev,
-              currentUsername: data.username,
-            }));
-            console.log(data.username);
-          } catch (error) {
-            console.error("Error fetching current username:", error);
-          }
-        };
-      
-        fetchCurrentUsername();
-      }, []);
-      
+        if (!response.ok) {
+          throw new Error("Failed to fetch username.");
+        }
+
+        const data = await response.json();
+        setFormData((prev) => ({
+          ...prev,
+          currentUsername: data.username,
+        }));
+      } catch (error) {
+        console.error("Error fetching current username:", error);
+      }
+    };
+
+    fetchCurrentUsername();
+  }, []);
+
   const [errors, setErrors] = useState({});
 
   const validateUsername = (username) => {
@@ -155,8 +152,54 @@ const AccountSettings = () => {
     setErrors(newErrors);
   };
 
+  const [successModalOpen, setSuccessModalOpen] = useState(false);
+  const [errorModalOpen, setErrorModalOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+
+  const handleChangeUsername = async () => {
+    const { newUsername } = formData;
+
+    if (!newUsername) {
+      setModalMessage("Please enter a new username.");
+      setErrorModalOpen(true);
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:5128/Users/update-username", {
+        method: "PATCH",
+        headers: {
+          accept: "*/*",
+          "Content-Type": "application/json",
+          Authorization: `bearer ${token}`,
+        },
+        body: JSON.stringify(newUsername.trim()),
+      });
+      console.log("response", response);
+      if (response.ok) {
+        setModalMessage("Username updated successfully!");
+        setSuccessModalOpen(true);
+      } else if (response.status === 404) {
+        setModalMessage("Username is already taken please try another one.");
+        setErrorModalOpen(true);
+      } 
+    } catch (error) {
+      console.error("Error updating username:", error);
+    }
+  };
+
   return (
-    <Container  sx={{ py: 4 }} className="bg-white max-w-full w-full">
+    <Container sx={{ py: 4 }} className="bg-white">
+
+      {/* Back Button */}
+      <Box sx={{ mb: 3 }}>
+        <Link href="/pages/feed">
+          <IconButton color="primary" sx={{ color: "black" }}>
+            <ArrowBack />
+          </IconButton>
+        </Link>
+      </Box>
+
       <Box sx={{ mb: 4, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <Typography variant="h4" component="h1" gutterBottom className="text-black">
           Account Settings
@@ -192,7 +235,8 @@ const AccountSettings = () => {
           variant="contained"
           color="primary"
           sx={{ mt: 2 }}
-          disabled={!!errors.newUsername}
+          disabled={!!errors.newUsername || !formData.newUsername}
+          onClick={handleChangeUsername}
         >
           Change Username
         </Button>
@@ -360,6 +404,77 @@ const AccountSettings = () => {
           </Box>
         </ModalContent>
       </StyledModal>
+
+      <Modal
+        open={successModalOpen}
+        onClose={() => setSuccessModalOpen(false)}
+        aria-labelledby="success-modal-title"
+        aria-describedby="success-modal-description"
+      >
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            bgcolor: "background.paper",
+            boxShadow: 24,
+            p: 4,
+            borderRadius: 2,
+            maxWidth: 400,
+            textAlign: "center",
+          }}
+        >
+          <Typography id="success-modal-title" variant="h6" component="h2" color="primary">
+            Success!
+          </Typography>
+          <Typography id="success-modal-description" sx={{ mt: 2 }} color="black">
+            {modalMessage}
+          </Typography>
+          <Button
+            onClick={() => {
+              setSuccessModalOpen(false);
+              window.location.reload();
+            }}
+            sx={{ mt: 2 }}
+            variant="contained"
+          >
+            Close
+          </Button>
+        </Box>
+      </Modal>
+
+      <Modal
+        open={errorModalOpen}
+        onClose={() => setErrorModalOpen(false)}
+        aria-labelledby="error-modal-title"
+        aria-describedby="error-modal-description"
+      >
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            bgcolor: "background.paper",
+            boxShadow: 24,
+            p: 4,
+            borderRadius: 2,
+            maxWidth: 400,
+            textAlign: "center",
+          }}
+        >
+          <Typography id="error-modal-title" variant="h6" component="h2" color="error">
+            Error
+          </Typography>
+          <Typography id="error-modal-description" sx={{ mt: 2 }} color="black">
+            {modalMessage}
+          </Typography>
+          <Button onClick={() => setErrorModalOpen(false)} sx={{ mt: 2 }} variant="contained" color="error">
+            Close
+          </Button>
+        </Box>
+      </Modal>
     </Container>
   );
 };
