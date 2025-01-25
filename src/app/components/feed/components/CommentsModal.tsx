@@ -23,11 +23,13 @@ interface CommentsModalProps {
   onClose: () => void;
   postId: number;
   token: string | null;
-  userId: number | null; // Add userId prop for the logged-in user
+  userId: number | null;
   postPosition: { top: number; left: number; width: number; height: number };
+  AuthorId: number;
+  UserName: string;
 }
 
-const CommentsModal: React.FC<CommentsModalProps> = ({ open, onClose, postId, token, userId, postPosition }) => {
+const CommentsModal: React.FC<CommentsModalProps> = ({ open, onClose, postId, token, userId, postPosition, AuthorId, UserName }) => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -49,7 +51,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ open, onClose, postId, to
     }
   }, [open, postId]);
 
-  const handleAddComment = async () => {
+  const handleAddCommentAndNotification = async () => {
     if (!newComment.trim()) return;
 
     try {
@@ -71,6 +73,31 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ open, onClose, postId, to
     } catch (error) {
       console.error('Error adding comment:', error);
     }
+
+        // Post the upvote notification
+        const notificationResponse = await fetch('http://localhost:5128/Notifications', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            notificationType: 'Comment',
+            message: `${UserName} Commented on your post`,
+            isRead: false,
+            postId: postId,
+            receiverId: AuthorId,
+          }),
+        });
+        console.log("notificationResponse: ", notificationResponse);
+        if (notificationResponse.ok) {
+          const notificationData = await notificationResponse.json();
+          console.log('comment notification posted successfully:', notificationData);
+        } else {
+          throw new Error('Failed to post comment notification');
+        }
+  
+  
   };
 
   const handleDeleteComment = async (id: number) => {
@@ -301,7 +328,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ open, onClose, postId, to
                 background: 'linear-gradient(45deg, #333333, #000000)', // Darker gradient on hover
               },
             }}
-            onClick={handleAddComment}
+            onClick={handleAddCommentAndNotification}
           >
             Submit
           </Button>

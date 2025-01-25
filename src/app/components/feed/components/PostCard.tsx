@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Box, Grid,Typography,Card,CardContent,Button,IconButton,Avatar,} from '@mui/material';
 import { ThumbUp, ThumbDown, Comment } from '@mui/icons-material';
 import Link from 'next/link';
-import CommentsModal from './CommentsModal'; // Import the CommentsModal component
+import CommentsModal from './CommentsModal'; 
 import { jwtDecode } from 'jwt-decode';
 
 interface Author {
@@ -34,6 +34,7 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
   const [commentModalOpen, setCommentModalOpen] = useState(false); // State for modal open/close
   const [postPosition, setPostPosition] = useState({ top: 0, left: 0, width: 0, height: 0 }); // State for post card position
   const [signedInUserId, setSignedInUserId] = useState<number | null>(null); // State for signed-in user ID
+  const [notificationId, setNotificationId] = useState(null);
 
   const token = localStorage.getItem('token');
 
@@ -43,7 +44,6 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
       if (token) {
         try {
           const decodedToken: { UserId: string } = jwtDecode(token);
-          console.log('Decoded Token:', decodedToken); // Debugging line
           return parseInt(decodedToken.UserId, 10); // Convert UserId to a number
         } catch (error) {
           console.error('Error decoding token:', error);
@@ -54,7 +54,7 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
 
     const userId = getUserIdFromToken();
     setSignedInUserId(userId);
-    console.log('Signed-in User ID:', userId); // Debugging line
+
   }, [token]);
 
   // Fetch data (unchanged)
@@ -137,97 +137,247 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
     fetchData();
   }, [post.id, token, userName, post.author.id]);
 
-  // Handle upvote (unchanged)
-  const handleUpvote = () => {
-    if (hasUpvoted) {
-      setDisplayUpvotes(displayUpvotes - 1);
-      setHasUpvoted(false);
-      fetch('http://localhost:5128/Votes', {
-        method: 'Post',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          postId: post.id,
-          voteType: 'Upvote',
-        }),
-      })
-        .then(() => {
-          fetchVoteStatus();
-        })
-        .catch((error) => console.error('Error removing upvote:', error));
-    } else {
-      if (hasDownvoted) {
-        setDisplayDownvotes(displayDownvotes - 1);
-        setHasDownvoted(false);
-      }
-      fetch('http://localhost:5128/Votes', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          postId: post.id,
-          voteType: 'Upvote',
-        }),
-      })
-        .then(() => {
-          setDisplayUpvotes(displayUpvotes + 1);
-          setHasUpvoted(true);
-          setHasDownvoted(false);
-          fetchVoteStatus();
-        })
-        .catch((error) => console.error('Error submitting upvote:', error));
-    }
-  };
-
-  // Handle downvote (unchanged)
-  const handleDownvote = () => {
-    if (hasDownvoted) {
-      setDisplayDownvotes(displayDownvotes - 1);
-      setHasDownvoted(false);
-      fetch('http://localhost:5128/Votes', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          postId: post.id,
-          voteType: 'Downvote',
-        }),
-      })
-        .then(() => {
-          fetchVoteStatus();
-        })
-        .catch((error) => console.error('Error removing downvote:', error));
-    } else {
+  const handleUpvoteAndNotification = async () => {
+    try {
       if (hasUpvoted) {
+        // User is removing their upvote
         setDisplayUpvotes(displayUpvotes - 1);
         setHasUpvoted(false);
+  
+        // Remove the upvote from the Votes API
+        await fetch('http://localhost:5128/Votes', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            postId: post.id,
+            voteType: 'Upvote',
+          }),
+        });
+  
+        // Delete the upvote notification
+        if (notificationId) {
+          const deleteResponse = await fetch(
+            `http://localhost:5128/Notifications/${notificationId}`,
+            {
+              method: 'DELETE',
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+  
+          if (deleteResponse.ok) {
+            console.log('Upvote notification deleted successfully');
+            setNotificationId(null);
+          } else {
+            console.error('Error deleting upvote notification');
+          }
+        }
+  
+        // Refresh vote status
+        fetchVoteStatus();
+      } else {
+        // User is adding an upvote
+        if (hasDownvoted) {
+          setDisplayDownvotes(displayDownvotes - 1);
+          setHasDownvoted(false);
+  
+          // Delete the downvote notification
+          if (notificationId) {
+            const deleteResponse = await fetch(
+              `http://localhost:5128/Notifications/${notificationId}`,
+              {
+                method: 'DELETE',
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+  
+            if (deleteResponse.ok) {
+              console.log('Downvote notification deleted successfully');
+              setNotificationId(null);
+            } else {
+              console.error('Error deleting downvote notification');
+            }
+          }
+        }
+  
+        const voteResponse = await fetch('http://localhost:5128/Votes', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            postId: post.id,
+            voteType: 'Upvote',
+          }),
+        });
+  
+        if (!voteResponse.ok) {
+          throw new Error('Error submitting upvote');
+        }
+  
+        setDisplayUpvotes(displayUpvotes + 1);
+        setHasUpvoted(true);
+  
+        // Post the upvote notification
+        const notificationResponse = await fetch('http://localhost:5128/Notifications', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            notificationType: 'Upvote',
+            message: `${userName} Upvoted your post`,
+            isRead: false,
+            postId: post.id,
+            receiverID: post.author.id
+          }),
+        });
+  
+        if (notificationResponse.ok) {
+          const notificationData = await notificationResponse.json();
+          setNotificationId(notificationData.id);
+          console.log('Upvote notification posted successfully:', notificationData);
+        } else {
+          throw new Error('Failed to post upvote notification');
+        }
+  
+        // Refresh vote status
+        fetchVoteStatus();
       }
-      fetch('http://localhost:5128/Votes', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          postId: post.id,
-          voteType: 'Downvote',
-        }),
-      })
-        .then(() => {
-          setDisplayDownvotes(displayDownvotes + 1);
-          setHasDownvoted(true);
-          setHasUpvoted(false);
-          fetchVoteStatus();
-        })
-        .catch((error) => console.error('Error submitting downvote:', error));
+    } catch (error) {
+      console.error('Error handling upvote:', error);
     }
   };
+  
+  const handleDownvoteAndNotification = async () => {
+    try {
+      if (hasDownvoted) {
+        // User is removing their downvote
+        setDisplayDownvotes(displayDownvotes - 1);
+        setHasDownvoted(false);
+  
+        // Remove the downvote from the Votes API
+        await fetch('http://localhost:5128/Votes', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            postId: post.id,
+            voteType: 'Downvote',
+          }),
+        });
+  
+        // Delete the downvote notification
+        if (notificationId) {
+          const deleteResponse = await fetch(
+            `http://localhost:5128/Notifications/${notificationId}`,
+            {
+              method: 'DELETE',
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+  
+          if (deleteResponse.ok) {
+            console.log('Downvote notification deleted successfully');
+            setNotificationId(null);
+          } else {
+            console.error('Error deleting downvote notification');
+          }
+        }
+  
+        // Refresh vote status
+        fetchVoteStatus();
+      } else {
+        // User is adding a downvote
+        if (hasUpvoted) {
+          setDisplayUpvotes(displayUpvotes - 1);
+          setHasUpvoted(false);
+  
+          // Delete the upvote notification
+          if (notificationId) {
+            const deleteResponse = await fetch(
+              `http://localhost:5128/Notifications/${notificationId}`,
+              {
+                method: 'DELETE',
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+  
+            if (deleteResponse.ok) {
+              console.log('Upvote notification deleted successfully');
+              setNotificationId(null);
+            } else {
+              console.error('Error deleting upvote notification');
+            }
+          }
+        }
+  
+        const voteResponse = await fetch('http://localhost:5128/Votes', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            postId: post.id,
+            voteType: 'Downvote',
+          }),
+        });
+  
+        if (!voteResponse.ok) {
+          throw new Error('Error submitting downvote');
+        }
+  
+        setDisplayDownvotes(displayDownvotes + 1);
+        setHasDownvoted(true);
+  
+        // Post the downvote notification
+        const notificationResponse = await fetch('http://localhost:5128/Notifications', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            notificationType: 'Downvote',
+            message: `${userName} Downvoted your post`,
+            isRead: false,
+            postId: post.id,
+            receiverID: post.author.id
+          }),
+        });
+  
+        if (notificationResponse.ok) {
+          const notificationData = await notificationResponse.json();
+          setNotificationId(notificationData.id);
+          console.log('Downvote notification posted successfully:', notificationData);
+        } else {
+          throw new Error('Failed to post downvote notification');
+        }
+  
+        // Refresh vote status
+        fetchVoteStatus();
+      }
+    } catch (error) {
+      console.error('Error handling downvote:', error);
+    }
+  };
+  
+
 
   // Fetch vote status (unchanged)
   const fetchVoteStatus = () => {
@@ -337,6 +487,7 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
     }
   };
 
+
   // Handle opening the comments modal
   const handleOpenCommentsModal = (event: React.MouseEvent<HTMLButtonElement>) => {
     const postCardElement = event.currentTarget.closest('.post-card'); // Find the closest post card element
@@ -351,6 +502,8 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
     }
     setCommentModalOpen(true); // Open the modal
   };
+
+
 
   return (
     <Grid item xs={12} sm={6} md={4}>
@@ -384,13 +537,13 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <IconButton sx={{ color: hasUpvoted ? 'green' : 'gray' }} onClick={handleUpvote}>
+                <IconButton sx={{ color: hasUpvoted ? 'green' : 'gray' }} onClick={handleUpvoteAndNotification}>
                   <ThumbUp />
                 </IconButton>
                 <Typography sx={{ fontWeight: 600 }}>{displayUpvotes}</Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <IconButton sx={{ color: hasDownvoted ? 'red' : 'gray' }} onClick={handleDownvote}>
+                <IconButton sx={{ color: hasDownvoted ? 'red' : 'gray' }} onClick={handleDownvoteAndNotification}>
                   <ThumbDown />
                 </IconButton>
                 <Typography sx={{ fontWeight: 600 }}>{displayDownvotes}</Typography>
@@ -418,8 +571,10 @@ const PostCard: React.FC<{ post: Post }> = ({ post }) => {
           onClose={() => setCommentModalOpen(false)}
           postId={post.id}
           token={token}
-          userId={signedInUserId} // Pass the signed-in user's ID
+          userId={signedInUserId} 
           postPosition={postPosition}
+          AuthorId = {post.author.id}
+          UserName= {userName}
         />
       )}
     </Grid>

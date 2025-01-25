@@ -1,16 +1,10 @@
 import * as React from 'react';
 import { alpha, styled } from '@mui/material/styles';
-import Box from '@mui/material/Box';
-import AppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
-import Button from '@mui/material/Button';
-import IconButton from '@mui/material/IconButton';
-import Container from '@mui/material/Container';
-import Divider from '@mui/material/Divider';
-import MenuItem from '@mui/material/MenuItem';
-import Drawer from '@mui/material/Drawer';
+
+import {  Drawer, MenuItem, Divider,Container,IconButton,Button, Box,AppBar,Toolbar,CircularProgress } from "@mui/material";
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import Badge from '@mui/material/Badge';
 import { LogoIcon } from '../../CustomIcons';
 import Link from 'next/link';
 
@@ -47,6 +41,7 @@ export default function AppAppBar() {
   const [open, setOpen] = React.useState(false);
   const [confirmOpen, setConfirmOpen] = React.useState(false); // State for confirmation dropdown
   const [mobileConfirmOpen, setMobileConfirmOpen] = React.useState(false); // Separate state for mobile confirmation
+  const [unreadCount, setUnreadCount] = React.useState(0); // State for unread notifications count
 
   const toggleDrawer = (newOpen: boolean) => () => {
     setOpen(newOpen);
@@ -67,6 +62,34 @@ export default function AppAppBar() {
   const toggleMobileConfirmDropdown = () => {
     setMobileConfirmOpen((prev) => !prev);
   };
+
+  React.useEffect(() => {
+    const fetchUnreadCount = async () => {
+      const token = localStorage.getItem('token'); 
+      if (!token) return;
+
+      try {
+        const response = await fetch('http://localhost:5128/Notifications/unread-count', {
+          method: 'GET',
+          headers: {
+            'accept': 'text/plain',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const count = await response.json();
+          setUnreadCount(count); // Update state with the unread count
+        } else {
+          console.error('Failed to fetch unread notifications count');
+        }
+      } catch (error) {
+        console.error('Error fetching unread notifications count:', error);
+      }
+    };
+
+    fetchUnreadCount();
+  }, []);
 
   return (
     <>
@@ -94,16 +117,23 @@ export default function AppAppBar() {
               </Box>
               <Box sx={{ display: { xs: 'none', md: 'flex' }, position: 'relative' }}>
                 <Link href="/pages/userprofile" passHref>
-                <Button variant="text" size="small" sx={{ color: 'black' }}>
+                  <Button variant="text" size="small" sx={{ color: 'black' }}>
                     My Profile
                   </Button>
                 </Link>
+
                 <Button variant="text" size="small" sx={{ color: 'black' }}>
                   Settings
                 </Button>
-                <Button variant="text" size="small" sx={{ color: 'black' }}>
-                  Notifications
-                </Button>
+
+                <Link href="/pages/notification" passHref>
+                  <Badge badgeContent={unreadCount} color="error">
+                    <Button variant="text" size="small" sx={{ color: 'black' }}>
+                      Notifications
+                    </Button>
+                  </Badge>
+                </Link>
+
                 <Button
                   variant="text"
                   color="error"
@@ -161,7 +191,13 @@ export default function AppAppBar() {
                     <MenuItem>My Profile</MenuItem>
                   </Link>
                   <MenuItem>Settings</MenuItem>
-                  <MenuItem>Notifications</MenuItem>
+
+                  <Link href="/pages/notification" passHref>
+                    <Badge badgeContent={unreadCount} color="error">
+                      <MenuItem>Notifications</MenuItem>
+                    </Badge>
+                  </Link>
+
                   <MenuItem
                     sx={{ color: 'error.main' }}
                     onClick={toggleMobileConfirmDropdown} // Toggle mobile confirmation dropdown
