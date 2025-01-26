@@ -45,7 +45,14 @@ const SocialMediaPost = ({ initialPost, userName, token, userId }: SocialMediaPo
         {/* Post Header */}
         <PostHeader
           author={initialPost.author}
-          createdAt={initialPost.createdAt} // createdAt is already a string
+          createdAt={initialPost.createdAt}
+          onEdit={() => {
+            // Handle edit logic here
+          }}
+          onDelete={() => {
+            // Handle delete logic here
+          }}
+          postId={initialPost.id} // Pass the postId to the PostHeader component
         />
 
         {/* Post Content */}
