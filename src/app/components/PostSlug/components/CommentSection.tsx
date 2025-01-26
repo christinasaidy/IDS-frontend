@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Avatar, TextField, Button, IconButton, Typography, Menu, MenuItem } from "@mui/material";
 import { MoreVert as MoreVertIcon } from "@mui/icons-material";
-import { jwtDecode } from "jwt-decode"; // Import jwt-decode
+import { jwtDecode } from "jwt-decode";
 
 interface User {
   id: number;
@@ -31,7 +31,7 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
   const [newComment, setNewComment] = useState("");
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedCommentId, setSelectedCommentId] = useState<number | null>(null);
-  const [signedInUserId, setSignedInUserId] = useState<number | null>(null); // State for signed-in user ID
+  const [signedInUserId, setSignedInUserId] = useState<number | null>(null); 
 
   const token = localStorage.getItem("token");
 

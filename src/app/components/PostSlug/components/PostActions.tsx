@@ -1,10 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ThumbUp, ThumbDown } from "@mui/icons-material"; // Import MUI icons
+import { ThumbUp, ThumbDown } from "@mui/icons-material"; 
 import { FaComment, FaShare, FaBookmark } from "react-icons/fa";
-import { jwtDecode } from "jwt-decode"; // Import jwtDecode
 
+interface Author {
+  id: number;
+  userName: string;
+  avatar: string;
+}
 interface PostActionsProps {
   post: {
     id: number;
@@ -20,122 +24,129 @@ interface PostActionsProps {
   userName: string;
 }
 
-const PostActions = ({ post, userName }: PostActionsProps) => {
+const PostActions = ({ post }: PostActionsProps) => {
   const token = localStorage.getItem("token");
-  console.log("Token:", token); // Debugging line
 
   const [displayUpvotes, setDisplayUpvotes] = useState(post.upvotes);
   const [displayDownvotes, setDisplayDownvotes] = useState(post.downvotes);
-  const [hasUpvoted, setHasUpvoted] = useState(false); // Initial state is false
-  const [hasDownvoted, setHasDownvoted] = useState(false); // Initial state is false
-  const [commentsCount, setCommentsCount] = useState(0); // State for comments count
-  const [notificationId, setNotificationId] = useState<string | null>(null); // State for notification ID
-  console.log("post", post);
-  // Decode the token to get the username (sub) and userId
-  const getUserIdFromToken = (): number | null => {
-    if (token) {
-      try {
-        const decodedToken: { sub: string; UserId: string } = jwtDecode(token);
-        console.log("Decoded Token:", decodedToken); // Debugging line
-        return parseInt(decodedToken.UserId, 10); // Convert UserId to a number
-      } catch (error) {
-        console.error("Error decoding token:", error);
-      }
-    }
-    return null;
-  };
+  const [hasUpvoted, setHasUpvoted] = useState(false); 
+  const [hasDownvoted, setHasDownvoted] = useState(false); 
+  const [commentsCount, setCommentsCount] = useState(0); 
+  const [notificationId, setNotificationId] = useState<string | null>(null); 
+  const [userName, setUserName] = useState('');
 
-  const getUsernameFromToken = (): string | null => {
-    if (token) {
-      try {
-        const decodedToken: { sub: string } = jwtDecode(token);
-        console.log("Decoded Token (sub):", decodedToken.sub); // Debugging line
-        return decodedToken.sub; // Return the username (sub)
-      } catch (error) {
-        console.error("Error decoding token:", error);
-      }
-    }
-    return null;
-  };
-
-  // Fetch vote status on component mount
   useEffect(() => {
-    fetchVoteStatus();
-    fetchCommentsCount(); // Fetch comments count when the component mounts
-  }, [post.id, userName]); // Re-run if post.id or userName changes
-
-  // Fetch vote status
-  const fetchVoteStatus = async () => {
-    try {
-      const response = await fetch(`http://localhost:5128/Votes/Post/${post.id}`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorMessage = await response.text();
-        console.warn("Error fetching vote status:", errorMessage);
-        return;
+    const fetchCommentsCount = async () => {
+      try {
+        const response = await fetch(`http://localhost:5128/Comments/Post/${post.id}`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+  
+        if (!response.ok) {
+          const errorMessage = await response.text();
+          console.warn("Error fetching comments count:", errorMessage);
+          return;
+        }
+  
+        const data = await response.json();
+        console.log("Comments data:", data); // Debugging line
+  
+        // Set the comments count based on the length of the comments array
+        setCommentsCount(data.length);
+      } catch (error) {
+        console.error("Error fetching comments count:", error);
       }
+    };
+    fetchCommentsCount();
+  });
 
-      const data = await response.json();
-      console.log("Backend response:", data); // Debugging line
+  // Fetch data (unchanged)
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch username
+        const userResponse = await fetch('http://localhost:5128/Users/username', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            accept: '*/*',
+          },
+        });
+        const userData = await userResponse.json();
+        setUserName(userData.username);
 
-      // Get the username from the token
-      const tokenUsername = getUsernameFromToken();
+        // Fetch vote status
+        const voteResponse = await fetch(`http://localhost:5128/Votes/Post/${post.id}`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!voteResponse.ok) {
+          let errorMessage = "An unknown error occurred";
+          try {
+            const error = await voteResponse.json();
+            errorMessage = error.message || JSON.stringify(error);
+          } catch {
+            errorMessage = await voteResponse.text();
+          }
+          console.warn('No votes found or another error occurred:', errorMessage);
+        } else {
+          const voteData = await voteResponse.json();
+          const userVotes = voteData.reduce(
+            (votes, vote) => {
+              if (vote.userName === userName) {
+                if (vote.voteType === 'Upvote') votes.upvoted = true;
+                if (vote.voteType === 'Downvote') votes.downvoted = true;
+              }
+              return votes;
+            },
+            { upvoted: false, downvoted: false }
+          );
+          setHasUpvoted(userVotes.upvoted);
+          setHasDownvoted(userVotes.downvoted);
+        }
 
-      // Find the vote for the signed-in user
-      const userVote = data.find((vote: { userName: string }) => vote.userName === tokenUsername);
-
-      // Update states based on the user's vote
-      if (userVote) {
-        setHasUpvoted(userVote.voteType === "Upvote");
-        setHasDownvoted(userVote.voteType === "Downvote");
-      } else {
-        // If the user hasn't voted, reset the states
-        setHasUpvoted(false);
-        setHasDownvoted(false);
       }
-
-      console.log("User vote status:", {
-        hasUpvoted: userVote?.voteType === "Upvote",
-        hasDownvoted: userVote?.voteType === "Downvote",
-      }); // Debugging line
-    } catch (error) {
-      console.error("Error fetching vote status:", error);
-    }
-  };
-
-  // Fetch comments count
-  const fetchCommentsCount = async () => {
-    try {
-      const response = await fetch(`http://localhost:5128/Comments/Post/${post.id}`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorMessage = await response.text();
-        console.warn("Error fetching comments count:", errorMessage);
-        return;
+       catch (error) {
+        console.error('Error fetching data:', error);
       }
+    };
 
-      const data = await response.json();
-      console.log("Comments data:", data); // Debugging line
-
-      // Set the comments count based on the length of the comments array
-      setCommentsCount(data.length);
-    } catch (error) {
-      console.error("Error fetching comments count:", error);
-    }
+    fetchData();
+  }, [post.id, token, userName, post.author.id]);
+  
+  // Fetch vote status (unchanged)
+  const fetchVoteStatus = () => {
+    fetch(`http://localhost:5128/Votes/Post/${post.id}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        const userVotes = data.reduce(
+          (votes: { upvoted: boolean; downvoted: boolean }, vote: { voteType: string; userName: string }) => {
+            if (vote.userName === userName) {
+              if (vote.voteType === 'Upvote') votes.upvoted = true;
+              if (vote.voteType === 'Downvote') votes.downvoted = true;
+            }
+            return votes;
+          },
+          { upvoted: false, downvoted: false }
+        );
+        setHasUpvoted(userVotes.upvoted);
+        setHasDownvoted(userVotes.downvoted);
+      })
+      .catch((error) => console.error('Error fetching vote status:', error));
   };
 
   // Handle upvote with notification logic
-  const handleUpvote = async () => {
+  const handleUpvoteAndNotification = async () => {
     try {
       if (hasUpvoted) {
         // User is removing their upvote
@@ -174,6 +185,8 @@ const PostActions = ({ post, userName }: PostActionsProps) => {
             console.error("Error deleting upvote notification");
           }
         }
+        // Refresh vote status
+        fetchVoteStatus();
       } else {
         // User is adding an upvote
         if (hasDownvoted) {
@@ -253,7 +266,7 @@ const PostActions = ({ post, userName }: PostActionsProps) => {
   };
 
   // Handle downvote with notification logic
-  const handleDownvote = async () => {
+  const handleDownvoteAndNotification = async () => {
     try {
       if (hasDownvoted) {
         // User is removing their downvote
@@ -375,7 +388,7 @@ const PostActions = ({ post, userName }: PostActionsProps) => {
       <div className="flex space-x-4">
         {/* Upvote Button */}
         <button
-          onClick={handleUpvote}
+          onClick={handleUpvoteAndNotification}
           className={`flex items-center space-x-1 ${
             hasUpvoted ? "text-green-500" : "text-gray-500"
           }`}
@@ -386,7 +399,7 @@ const PostActions = ({ post, userName }: PostActionsProps) => {
 
         {/* Downvote Button */}
         <button
-          onClick={handleDownvote}
+          onClick={handleDownvoteAndNotification}
           className={`flex items-center space-x-1 ${
             hasDownvoted ? "text-red-500" : "text-gray-500"
           }`}
