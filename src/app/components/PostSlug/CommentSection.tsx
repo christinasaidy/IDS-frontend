@@ -148,6 +148,11 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
 
   return (
     <div className="space-y-4">
+      {/* Add the "Comments" heading */}
+      <Typography variant="h6" fontWeight={600} sx={{ color: "text.primary", mb: 2 }}>
+        Comments
+      </Typography>
+
       {/* Display Comments */}
       {comments.length === 0 ? (
         <Typography variant="body1" align="center" color="textSecondary">
