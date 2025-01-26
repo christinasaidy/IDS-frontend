@@ -7,7 +7,7 @@ import Link from "next/link";
 import { Box, IconButton, Menu, MenuItem, Typography, CircularProgress } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
 import { jwtDecode } from "jwt-decode";
-import PostEditModal from "./EditPost"; // Import the PostEditModal component
+import PostEditModal from "../EditPost"; 
 
 interface PostHeaderProps {
   author: {
@@ -124,7 +124,7 @@ const PostHeader = ({ author, createdAt, onEdit, onDelete, postId }: PostHeaderP
           Authorization: `Bearer ${token}`,
         },
       });
-
+      console.log("response: ", response)
       if (response.ok) {
         console.log("Post deleted successfully");
         onDelete(); // Invoke callback to refresh UI or handle post-deletion actions

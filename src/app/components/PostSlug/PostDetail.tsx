@@ -87,7 +87,7 @@ const SocialMediaPost = ({ initialPost, userName, token, userId }: SocialMediaPo
         {/* Post Actions and Comments */}
         <div className="p-4 border-t">
           <PostActions
-            post={{ id: initialPost.id, upvotes: initialPost.upvotes, downvotes: initialPost.downvotes }}
+            post={{ id: initialPost.id, upvotes: initialPost.upvotes, downvotes: initialPost.downvotes, author: initialPost.author }}
             commentsCount={0} // This can be updated if you fetch the count from the API
             userName={userName} // Pass the current user's username
           />

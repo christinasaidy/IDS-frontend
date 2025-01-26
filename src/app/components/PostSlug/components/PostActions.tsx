@@ -29,7 +29,8 @@ const PostActions = ({ post, userName }: PostActionsProps) => {
   const [hasUpvoted, setHasUpvoted] = useState(false); // Initial state is false
   const [hasDownvoted, setHasDownvoted] = useState(false); // Initial state is false
   const [commentsCount, setCommentsCount] = useState(0); // State for comments count
-
+  const [notificationId, setNotificationId] = useState<string | null>(null); // State for notification ID
+  console.log("post", post);
   // Decode the token to get the username (sub) and userId
   const getUserIdFromToken = (): number | null => {
     if (token) {
@@ -133,65 +134,239 @@ const PostActions = ({ post, userName }: PostActionsProps) => {
     }
   };
 
-  // Handle upvote
+  // Handle upvote with notification logic
   const handleUpvote = async () => {
     try {
-      const response = await fetch("http://localhost:5128/Votes", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          postId: post.id,
-          voteType: "Upvote", // Only send "Upvote" or "Downvote"
-        }),
-      });
+      if (hasUpvoted) {
+        // User is removing their upvote
+        setDisplayUpvotes((prev) => prev - 1);
+        setHasUpvoted(false);
 
-      if (response.ok) {
-        // Toggle the upvote state
-        setHasUpvoted((prev) => !prev);
-        // Update the upvote count
-        setDisplayUpvotes((prev) => (hasUpvoted ? prev - 1 : prev + 1));
-        // If the user was previously downvoting, remove the downvote
+        // Remove the upvote from the Votes API
+        await fetch("http://localhost:5128/Votes", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            postId: post.id,
+            voteType: "Upvote",
+          }),
+        });
+
+        // Delete the upvote notification
+        if (notificationId) {
+          const deleteResponse = await fetch(
+            `http://localhost:5128/Notifications/${notificationId}`,
+            {
+              method: "DELETE",
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          if (deleteResponse.ok) {
+            console.log("Upvote notification deleted successfully");
+            setNotificationId(null);
+          } else {
+            console.error("Error deleting upvote notification");
+          }
+        }
+      } else {
+        // User is adding an upvote
         if (hasDownvoted) {
-          setHasDownvoted(false);
           setDisplayDownvotes((prev) => prev - 1);
+          setHasDownvoted(false);
+
+          // Delete the downvote notification
+          if (notificationId) {
+            const deleteResponse = await fetch(
+              `http://localhost:5128/Notifications/${notificationId}`,
+              {
+                method: "DELETE",
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+
+            if (deleteResponse.ok) {
+              console.log("Downvote notification deleted successfully");
+              setNotificationId(null);
+            } else {
+              console.error("Error deleting downvote notification");
+            }
+          }
+        }
+
+        const voteResponse = await fetch("http://localhost:5128/Votes", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            postId: post.id,
+            voteType: "Upvote",
+          }),
+        });
+
+        if (!voteResponse.ok) {
+          throw new Error("Error submitting upvote");
+        }
+
+        setDisplayUpvotes((prev) => prev + 1);
+        setHasUpvoted(true);
+
+        // Post the upvote notification
+        const notificationResponse = await fetch("http://localhost:5128/Notifications", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            notificationType: "Upvote",
+            message: `${userName} Upvoted your post`,
+            isRead: false,
+            postId: post.id,
+            receiverID: post.author.id,
+          }),
+        });
+
+        if (notificationResponse.ok) {
+          const notificationData = await notificationResponse.json();
+          setNotificationId(notificationData.id);
+          console.log("Upvote notification posted successfully:", notificationData);
+        } else {
+          throw new Error("Failed to post upvote notification");
         }
       }
+
+      // Refresh vote status
+      fetchVoteStatus();
     } catch (error) {
-      console.error("Error toggling upvote:", error);
+      console.error("Error handling upvote:", error);
     }
   };
 
-  // Handle downvote
+  // Handle downvote with notification logic
   const handleDownvote = async () => {
     try {
-      const response = await fetch("http://localhost:5128/Votes", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          postId: post.id,
-          voteType: "Downvote", // Only send "Upvote" or "Downvote"
-        }),
-      });
+      if (hasDownvoted) {
+        // User is removing their downvote
+        setDisplayDownvotes((prev) => prev - 1);
+        setHasDownvoted(false);
 
-      if (response.ok) {
-        // Toggle the downvote state
-        setHasDownvoted((prev) => !prev);
-        // Update the downvote count
-        setDisplayDownvotes((prev) => (hasDownvoted ? prev - 1 : prev + 1));
-        // If the user was previously upvoting, remove the upvote
+        // Remove the downvote from the Votes API
+        await fetch("http://localhost:5128/Votes", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            postId: post.id,
+            voteType: "Downvote",
+          }),
+        });
+
+        // Delete the downvote notification
+        if (notificationId) {
+          const deleteResponse = await fetch(
+            `http://localhost:5128/Notifications/${notificationId}`,
+            {
+              method: "DELETE",
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          if (deleteResponse.ok) {
+            console.log("Downvote notification deleted successfully");
+            setNotificationId(null);
+          } else {
+            console.error("Error deleting downvote notification");
+          }
+        }
+      } else {
+        // User is adding a downvote
         if (hasUpvoted) {
-          setHasUpvoted(false);
           setDisplayUpvotes((prev) => prev - 1);
+          setHasUpvoted(false);
+
+          // Delete the upvote notification
+          if (notificationId) {
+            const deleteResponse = await fetch(
+              `http://localhost:5128/Notifications/${notificationId}`,
+              {
+                method: "DELETE",
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+
+            if (deleteResponse.ok) {
+              console.log("Upvote notification deleted successfully");
+              setNotificationId(null);
+            } else {
+              console.error("Error deleting upvote notification");
+            }
+          }
+        }
+
+        const voteResponse = await fetch("http://localhost:5128/Votes", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            postId: post.id,
+            voteType: "Downvote",
+          }),
+        });
+
+        if (!voteResponse.ok) {
+          throw new Error("Error submitting downvote");
+        }
+
+        setDisplayDownvotes((prev) => prev + 1);
+        setHasDownvoted(true);
+
+        // Post the downvote notification
+        const notificationResponse = await fetch("http://localhost:5128/Notifications", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            notificationType: "Downvote",
+            message: `${userName} Downvoted your post`,
+            isRead: false,
+            postId: post.id,
+            receiverID: post.author.id,
+          }),
+        });
+
+        if (notificationResponse.ok) {
+          const notificationData = await notificationResponse.json();
+          setNotificationId(notificationData.id);
+          console.log("Downvote notification posted successfully:", notificationData);
+        } else {
+          throw new Error("Failed to post downvote notification");
         }
       }
+
+      // Refresh vote status
+      fetchVoteStatus();
     } catch (error) {
-      console.error("Error toggling downvote:", error);
+      console.error("Error handling downvote:", error);
     }
   };
 
