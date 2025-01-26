@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import PostHeader from "./PostHeader";
-import PostContent from "./PostContent";
-import PostImageCarousel from "./PostImageCarousel";
-import PostActions from "./PostActions";
-import CommentSection from "./CommentSection";
+import PostHeader from "./components/PostHeader";
+import PostContent from "./components/PostContent";
+import PostImageCarousel from "./components/PostImageCarousel";
+import PostActions from "./components/PostActions";
+import CommentSection from "./components/CommentSection";
 
 // Define the interfaces
 interface Author {

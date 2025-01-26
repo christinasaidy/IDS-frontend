@@ -254,7 +254,6 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
                 background: "linear-gradient(45deg, #333333, #000000)",
               },
             }}
-            className="text-white"
           >
             Submit
           </Button>

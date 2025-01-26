@@ -74,7 +74,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ open, onClose, postId, to
       console.error('Error adding comment:', error);
     }
 
-        // Post the upvote notification
+        // Post the Comment notification
         const notificationResponse = await fetch('http://localhost:5128/Notifications', {
           method: 'POST',
           headers: {
