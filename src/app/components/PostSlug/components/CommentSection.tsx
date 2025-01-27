@@ -32,7 +32,8 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedCommentId, setSelectedCommentId] = useState<number | null>(null);
   const [signedInUserId, setSignedInUserId] = useState<number | null>(null); 
-
+  const [userName, setUserName] = useState<string | null>(null);
+  const [authorId, setAuthourId] = useState<number | null>(null);
   const token = localStorage.getItem("token");
 
   // Fetch the signed-in user's ID from the token
@@ -41,7 +42,6 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
       if (token) {
         try {
           const decodedToken: { UserId: string } = jwtDecode(token);
-          console.log('Decoded Token:', decodedToken); // Debugging line
           return parseInt(decodedToken.UserId, 10); // Convert UserId to a number
         } catch (error) {
           console.error('Error decoding token:', error);
@@ -79,17 +79,14 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
     }
   };
 
-  // Handle adding a new comment
-  const handleAddComment = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const handleAddCommentAndNotification = async () => {
     if (!newComment.trim()) return;
-
+  
     try {
-      const response = await fetch("http://localhost:5128/Comments", {
-        method: "POST",
+      const response = await fetch('http://localhost:5128/Comments', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
@@ -97,22 +94,47 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
           content: newComment,
         }),
       });
-      console.log("postId:", postId);
-      console.log("newComment:", newComment);
-
-      if (!response.ok) {
-        const errorText = await response.text(); // Log the raw response text
-        console.error("Error Response Text:", errorText);
-        throw new Error("Failed to add comment");
+  
+      const data = await response.json();
+      setComments([...comments, data]);
+      setNewComment('');
+  
+      const userNameFromResponse = data.user.userName;  
+      const authorIdFromResponse = data.post.userId;
+  
+      console.log("postId", postId);
+      console.log("userName", userNameFromResponse);
+      console.log("authorId", authorIdFromResponse);
+  
+      // Post the Comment notification
+      const notificationResponse = await fetch('http://localhost:5128/Notifications', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          notificationType: 'Comment',
+          message: `${userNameFromResponse} Commented on your post`,
+          isRead: false,
+          postId: postId,
+          receiverId: authorIdFromResponse,
+        }),
+      });
+  
+      console.log("notificationResponse: ", notificationResponse);
+  
+      if (notificationResponse.ok) {
+        const notificationData = await notificationResponse.json();
+        console.log('Comment notification posted successfully:', notificationData);
+      } else {
+        throw new Error('Failed to post comment notification');
       }
-
-      const data = await response.json(); // Parse the response as JSON
-      setComments([...comments, data]); // Add the new comment to the list
-      setNewComment(""); // Clear the input field
     } catch (error) {
-      console.error("Error adding comment:", error);
+      console.error('Error adding comment or notification:', error);
     }
   };
+  
 
   // Handle deleting a comment
   const handleDeleteComment = async (id: number) => {
@@ -224,7 +246,7 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
       </Menu>
 
       {/* Add Comment Form */}
-      <form onSubmit={handleAddComment} className="mt-4">
+      <form onSubmit={handleAddCommentAndNotification} className="mt-4">
         <div className="flex space-x-2">
           <TextField
             fullWidth

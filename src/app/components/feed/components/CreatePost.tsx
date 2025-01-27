@@ -9,9 +9,9 @@ import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
 import FormControl from '@mui/material/FormControl';
 import Typography from '@mui/material/Typography';
-import MDEditor from '@uiw/react-md-editor'; // Markdown editor
-import ReactMarkdown from 'react-markdown'; // Markdown renderer
-import Box from '@mui/material/Box'; // Add Box for styling tags
+import MDEditor from '@uiw/react-md-editor'; 
+import ReactMarkdown from 'react-markdown'; 
+import Box from '@mui/material/Box';
 
 interface Category {
   id: number;
