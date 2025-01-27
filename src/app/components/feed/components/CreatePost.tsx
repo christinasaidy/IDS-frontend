@@ -8,7 +8,9 @@ import DialogActions from '@mui/material/DialogActions';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
 import FormControl from '@mui/material/FormControl';
-import Typography from '@mui/material/Typography'; // For error messages
+import Typography from '@mui/material/Typography';
+import MDEditor from '@uiw/react-md-editor'; // Markdown editor
+import ReactMarkdown from 'react-markdown'; // Markdown renderer
 
 interface Category {
   id: number;
@@ -120,7 +122,7 @@ const CreatePost: React.FC = () => {
           title,
           description,
           tags,
-          categoryName: categories.find((cat) => cat.id === category)?.name, // Send category name instead of id
+          categoryName: categories.find((cat) => cat.id === category)?.name,
         }),
       });
 
@@ -202,21 +204,19 @@ const CreatePost: React.FC = () => {
           </div>
           <div style={{ marginBottom: '1rem' }}>
             <h3>Description</h3>
-            <TextField
-              fullWidth
-              variant="outlined"
-              multiline
-              rows={6}
+            {/* Markdown Editor */}
+            <MDEditor
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              error={!!descriptionError}
-              helperText={descriptionError}
-              InputProps={{
-                style: {
-                  minHeight: '150px',
-                },
-              }}
+              onChange={(value) => setDescription(value || '')}
+              height={200}
             />
+            {/* Markdown Preview */}
+            <div style={{ marginTop: '1rem' }}>
+              <ReactMarkdown>{description}</ReactMarkdown>
+            </div>
+            {descriptionError && (
+              <Typography color="error">{descriptionError}</Typography>
+            )}
           </div>
           <div style={{ marginBottom: '1rem' }}>
             <h3>Tags</h3>
@@ -257,7 +257,6 @@ const CreatePost: React.FC = () => {
               onChange={handleImageChange}
               helperText="add 4 images at max"
               error={!!imagesError}
-              helperText={imagesError || "add 4 images at max"}
             />
           </div>
         </DialogContent>

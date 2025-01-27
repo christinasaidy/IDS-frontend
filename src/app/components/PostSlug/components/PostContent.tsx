@@ -1,4 +1,9 @@
 import { FaTag } from "react-icons/fa";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { CSSProperties } from "react";
 
 interface PostContentProps {
   title: string;
@@ -24,15 +29,37 @@ const PostContent = ({
         {category}
       </span>
     </div>
-    <p className="text-gray-700 mb-4">
-      {isExpanded ? description : `${description.slice(0, 150)}...`}
+    <div className="text-gray-700 mb-4">
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={{
+          code({ node, inline, className, children, ...props }) {
+            const match = /language-(\w+)/.exec(className || "");
+            return !inline && match ? (
+              <SyntaxHighlighter
+                style={oneDark as { [key: string]: CSSProperties }}
+                language={match[1]}
+                PreTag="div" {...props}
+              >
+                {String(children).replace(/\n$/, "")}
+              </SyntaxHighlighter>
+            ) : (
+              <code className={className} {...props}>
+                {children}
+              </code>
+            );
+          },
+        }}
+      >
+        {isExpanded ? description : `${description.slice(0, 150)}...`}
+      </ReactMarkdown>
       <button
         onClick={onToggleExpand}
         className="text-blue-600 hover:text-blue-700 ml-1 text-sm font-medium"
       >
         {isExpanded ? "Show less" : "Read more"}
       </button>
-    </p>
+    </div>
     <div className="flex items-center space-x-2 mb-4">
       <FaTag className="text-gray-500" />
       <div className="flex flex-wrap gap-2">
