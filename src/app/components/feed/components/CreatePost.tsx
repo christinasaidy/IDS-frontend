@@ -11,6 +11,7 @@ import FormControl from '@mui/material/FormControl';
 import Typography from '@mui/material/Typography';
 import MDEditor from '@uiw/react-md-editor'; // Markdown editor
 import ReactMarkdown from 'react-markdown'; // Markdown renderer
+import Box from '@mui/material/Box'; // Add Box for styling tags
 
 interface Category {
   id: number;
@@ -167,6 +168,9 @@ const CreatePost: React.FC = () => {
     }
   };
 
+  // Split tags into an array
+  const tagsArray = tags.split(',').map((tag) => tag.trim()).filter((tag) => tag !== '');
+
   return (
     <>
       <Button
@@ -227,6 +231,23 @@ const CreatePost: React.FC = () => {
               value={tags}
               onChange={(e) => setTags(e.target.value)}
             />
+            {/* Display tags as chips */}
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 2 }}>
+              {tagsArray.map((tag, index) => (
+                <Box
+                  key={index}
+                  sx={{
+                    backgroundColor: 'primary.main',
+                    color: 'white',
+                    borderRadius: '4px',
+                    padding: '4px 8px',
+                    fontSize: '0.875rem',
+                  }}
+                >
+                  {tag}
+                </Box>
+              ))}
+            </Box>
           </div>
           <div style={{ marginBottom: '1rem' }}>
             <h3>Category</h3>
@@ -255,7 +276,6 @@ const CreatePost: React.FC = () => {
               type="file"
               inputProps={{ multiple: true, accept: 'image/*' }}
               onChange={handleImageChange}
-              helperText="add 4 images at max"
               error={!!imagesError}
             />
           </div>

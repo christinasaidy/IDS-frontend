@@ -88,13 +88,13 @@ const SocialMediaPost = ({ initialPost, userName, token, userId }: SocialMediaPo
         <div className="p-4 border-t">
           <PostActions
             post={{ id: initialPost.id, upvotes: initialPost.upvotes, downvotes: initialPost.downvotes, author: initialPost.author }}
-            commentsCount={0} // This can be updated if you fetch the count from the API
-            userName={userName} // Pass the current user's username
+            commentsCount={0}
+            userName={userName} 
           />
           <CommentSection
-            postId={initialPost.id} // Pass the postId to fetch comments
-            token={token} // Pass the token for API authentication
-            userId={userId} // Pass the userId for the logged-in user
+            postId={initialPost.id} 
+            token={token} 
+            userId={userId}
           />
         </div>
       </div>
