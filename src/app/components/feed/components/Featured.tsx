@@ -22,7 +22,7 @@ const FeaturedPosts: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
 
   useEffect(() => {
-    fetch('http://localhost:5128/Posts/top?count=4')
+    fetch('http://localhost:5128/Posts/top?count=6')
       .then((response) => response.json())
       .then((data) => {
         const formattedPosts = Array.isArray(data) ? data : [data];
