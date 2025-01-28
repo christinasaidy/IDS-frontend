@@ -18,6 +18,8 @@ import {
 } from "@mui/material";
 import { styled } from "@mui/system";
 import { FaSave, FaTimes } from "react-icons/fa";
+import MDEditor from '@uiw/react-md-editor';
+import ReactMarkdown from 'react-markdown';
 
 const StyledForm = styled("form")(({ theme }) => ({
   display: "flex",
@@ -116,7 +118,7 @@ const PostEditModal = ({ postId, open, onClose }) => {
             categoryName: formData.category,
           }),
         });
-  
+
         if (response.ok) {
           setSnackbar({
             open: true,
@@ -139,6 +141,7 @@ const PostEditModal = ({ postId, open, onClose }) => {
       }
     }
   };
+
   const handleCancel = () => {
     if (formData.title || formData.description || formData.category || formData.tags.length > 0) {
       // Show confirmation dialog if there are unsaved changes
@@ -199,18 +202,19 @@ const PostEditModal = ({ postId, open, onClose }) => {
               )}
             </FormControl>
 
-            <TextField
-              label="Description"
-              multiline
-              rows={6}
-              fullWidth
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              error={!!errors.description}
-              helperText={errors.description || "Write your post content here..."}
-              placeholder="Write your post content here..."
-              sx={{ mt: 2 }}
-            />
+            <div style={{ marginBottom: '1rem' }}>
+              <h3>Description</h3>
+              {/* Markdown Editor */}
+              <MDEditor
+                value={formData.description}
+                onChange={(value) => setFormData({ ...formData, description: value || '' })}
+                height={200}
+              />
+              {/* Markdown Preview */}
+              <div style={{ marginTop: '1rem' }}>
+                <ReactMarkdown>{formData.description}</ReactMarkdown>
+              </div>
+            </div>
 
             <TextField
               label="Tags"

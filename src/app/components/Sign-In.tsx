@@ -231,12 +231,6 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
             <Typography sx={{ color: "text.secondary" }}>or</Typography>
           </Divider>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <Button fullWidth variant="outlined" onClick={() => alert("Sign in with Google")} startIcon={<GoogleIcon />}>
-              Sign in with Google
-            </Button>
-            <Button fullWidth variant="outlined" onClick={() => alert("Sign in with Facebook")} startIcon={<FacebookIcon />}>
-              Sign in with Facebook
-            </Button>
             <Typography sx={{ textAlign: "center" }}>
               Don't have an account?{" "}
               <Link href="/pages/signup" variant="body2" sx={{ alignSelf: "center" }} underline="hover">
