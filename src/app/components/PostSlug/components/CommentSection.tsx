@@ -32,8 +32,6 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedCommentId, setSelectedCommentId] = useState<number | null>(null);
   const [signedInUserId, setSignedInUserId] = useState<number | null>(null); 
-  const [userName, setUserName] = useState<string | null>(null);
-  const [authorId, setAuthourId] = useState<number | null>(null);
   const token = localStorage.getItem("token");
 
   // Fetch the signed-in user's ID from the token
@@ -246,7 +244,7 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
       </Menu>
 
       {/* Add Comment Form */}
-      <form onSubmit={handleAddCommentAndNotification} className="mt-4">
+      <form className="mt-4">
         <div className="flex space-x-2">
           <TextField
             fullWidth
@@ -269,8 +267,8 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
             }}
           />
           <Button
-            type="submit"
             variant="contained"
+            onClick={handleAddCommentAndNotification}
             sx={{
               background: "linear-gradient(45deg, #000000, #333333)",
               color: "text.white",

@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Box, Container, Grid, Typography, TextField, Button, IconButton, Alert } from "@mui/material";
 import { styled } from "@mui/system";
 import { FaFacebookF, FaTwitter, FaInstagram, FaLinkedinIn, FaYoutube } from "react-icons/fa";
-import { LogoIcon } from '../../CustomIcons';
 
 const StyledFooter = styled(Box)(({ theme }) => ({
   backgroundColor: "#FFFFFF",
@@ -59,13 +58,12 @@ const Footer = () => {
       <Container maxWidth="lg">
         <Grid container spacing={4}>
           <Grid item xs={12} sm={6} md={3}>
-          <Box mb={3} sx={{paddingRight:'400px'}}>
-          <LogoIcon style={{marginBottom: '30px'}}/> </Box>
-            <Typography variant="body2" color="text.secondary" mb={2}>
+ 
+            <Typography variant="body2" color="text.secondary" mb={2} sx={{marginTop:'50px'}}>
               Connecting people through meaningful social interactions
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              © {new Date().getFullYear()} Nerds. All rights reserved.
+              © {new Date().getFullYear()} SocialPlatform. All rights reserved.
             </Typography>
           </Grid>
 
