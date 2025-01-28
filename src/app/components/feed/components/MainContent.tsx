@@ -52,29 +52,16 @@ export default function MainContent() {
   useEffect(() => {
     if (selectedCategoryId) {
       fetch(`http://localhost:5128/Posts/category/${selectedCategoryId}`)
-        .then((response) => {
-          // First, check if the response is OK (status code 200-299)
-       
-          // Try to parse the response as JSON
-          return response.text().then((text) => {
-            try {
-              // Attempt to parse the text as JSON
-              return JSON.parse(text);
-            } catch (error) {
-              // If parsing fails, it means the response is not JSON (e.g., "No posts found")
-              return null; // Return null or any other value to indicate non-JSON response
-            }
-          });
-        })
-        .then((data) => {
-          // If data is null, it means the response was not JSON (e.g., "No posts found")
-          if (data === null) {
-            console.log("No posts found or invalid response."); // Log or handle as needed
-            return; // Do nothing in this case
+        .then((response) => response.text())
+        .then((text) => {
+          try {
+            const data = JSON.parse(text);
+            const formattedPosts = Array.isArray(data) ? data : [data];
+            setPosts(formattedPosts);
+          } catch (error) {
+            console.log("No posts found or invalid response.");
+            setPosts([]); // Set posts to an empty array if no posts are found
           }
-          // If data is valid JSON, process it
-          const formattedPosts = Array.isArray(data) ? data : [data];
-          setPosts(formattedPosts);
         })
         .catch((error) => {
           console.error('Error fetching posts:', error);
