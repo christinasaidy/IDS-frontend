@@ -1,5 +1,11 @@
 ### The following code is Frontend code for the Nerds Social Media Platform, and it is still a work in progress.
-### The website was made with React.js(Integrated with Typscript) and MUI Library.
+#### Nerds is a social media website designed for technology enthusiasts. It provides a platform where users can share, and discuss topics related to technology.
+
+---
+
+### The website tech stack is focused on React.js(Integrated with Typscript), MUI and Tailwind CSS.
+
+---
 
 #### The Website features are the following so far:
 * Users can Sign In / Sign Up
@@ -21,6 +27,7 @@
 * Users can delete their own posts
 * Users can update their own posts
 * Users can remove a Upvote, Downvote or comment they made
+* Users have a points rewarding system, where they can view it on their personal profile, eahc user who creates posts and gets Upvotes or comments they gets rewarded with riputation points  
    
     
   
