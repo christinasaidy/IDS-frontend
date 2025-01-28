@@ -60,12 +60,11 @@ const DeleteProfileService = ({ token }) => {
         alert("Account deleted successfully!");
         window.location.href = "/"; // Redirect to home page after deletion
       } else {
-        const errorMessage = await response.text();
-        alert(`Failed to delete account: ${errorMessage}`);
+        alert(`Failed to delete account, please check your password`);
       }
     } catch (error) {
       console.error("Error deleting account:", error);
-      alert("An error occurred. Please try again later.");
+      alert("An error occurred. Please make sure you are entering the coorect password.");
     }
   };
 

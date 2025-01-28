@@ -26,7 +26,6 @@ interface PostActionsProps {
 
 const PostActions = ({ post }: PostActionsProps) => {
   const token = localStorage.getItem("token");
-  console.log("Token:", token); // Debugging line 
   const [displayUpvotes, setDisplayUpvotes] = useState(post.upvotes);
   const [displayDownvotes, setDisplayDownvotes] = useState(post.downvotes);
   const [hasUpvoted, setHasUpvoted] = useState(false); 
